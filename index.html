@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>청약가이드 매니저</title>
+<style>
+:root {
+  --blue-50:#E6F1FB;--blue-100:#B5D4F4;--blue-200:#7FB8EE;--blue-600:#185FA5;--blue-800:#0C447C;--blue-900:#042C53;
+  --green-50:#EAF3DE;--green-100:#C0DD97;--green-600:#3B6D11;--green-800:#27500A;
+  --amber-50:#FAEEDA;--amber-100:#FAC775;--amber-600:#854F0B;--amber-800:#633806;
+  --red-50:#FCEBEB;--red-200:#F7C1C1;--red-600:#A32D2D;
+  --coral-50:#FAECE7;--coral-600:#993C1D;--coral-800:#712B13;
+  --gray-50:#F8F8F6;--gray-100:#EFEFEB;--gray-200:#D3D1C7;--gray-500:#888780;--gray-800:#2C2C2A;
+  --border:#E2E0D8;--text:#1A1A18;--text-2:#5F5E5A;--text-3:#888780;
+  --bg:#F2F1ED;--surface:#FFFFFF;
+  --r:8px;--r-lg:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;min-width:1100px;}
+
+/* ── 공통 ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 14px;border-radius:var(--r);font-size:12px;font-weight:500;cursor:pointer;border:none;font-family:inherit;transition:all .15s;white-space:nowrap;}
+.btn-primary{background:var(--blue-600);color:#fff;} .btn-primary:hover{background:var(--blue-800);}
+.btn-ghost{background:var(--surface);color:var(--text);border:1px solid var(--border);} .btn-ghost:hover{background:var(--gray-50);}
+.btn-danger{background:var(--red-50);color:var(--red-600);border:1px solid var(--red-200);} .btn-danger:hover{background:var(--red-200);}
+.btn-sm{padding:5px 10px;font-size:11px;}
+.btn-xs{padding:3px 8px;font-size:10px;}
+.btn-icon{border:none;background:transparent;color:var(--text-3);font-size:14px;cursor:pointer;padding:2px 4px;line-height:1;font-family:inherit;}
+.btn-icon:hover{color:var(--blue-600);}
+
+/* ── SCREENS ── */
+.screen{display:none;} .screen.active{display:block;}
+
+/* ══ HOME ══ */
+.home-wrap{max-width:900px;margin:0 auto;padding:48px 40px;}
+.home-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+.home-title{font-size:24px;font-weight:700;letter-spacing:-.3px;}
+.home-sub{font-size:13px;color:var(--text-2);margin-top:4px;}
+.guide-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.guide-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;cursor:pointer;transition:box-shadow .15s;}
+.guide-card:hover{box-shadow:0 2px 16px rgba(0,0,0,.1);}
+.gc-tag{font-size:10px;font-weight:700;color:var(--blue-600);background:var(--blue-50);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:8px;}
+.gc-title{font-size:16px;font-weight:700;margin-bottom:4px;}
+.gc-sub{font-size:12px;color:var(--text-2);}
+.gc-meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+.gc-stat{font-size:11px;color:var(--text-3);}
+.gc-actions{display:flex;gap:6px;}
+.empty-state{text-align:center;padding:64px 24px;color:var(--text-3);}
+.empty-state-icon{font-size:40px;margin-bottom:12px;}
+.empty-state-title{font-size:16px;font-weight:600;color:var(--text-2);margin-bottom:6px;}
+
+/* ══ GUIDE PAGE ══ */
+.guide-page{max-width:1700px;margin:0 auto;padding:28px 36px 100px;}
+
+/* topbar */
+.topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.topbar-back{background:none;border:none;cursor:pointer;font-size:13px;color:var(--text-2);display:flex;align-items:center;gap:4px;padding:4px 0;font-family:inherit;}
+.topbar-back:hover{color:var(--blue-600);}
+.topbar-title-wrap{flex:1;}
+.topbar-title{font-size:20px;font-weight:700;letter-spacing:-.2px;}
+.topbar-sub{font-size:12px;color:var(--text-2);margin-top:2px;}
+.editable-title{border:none;background:transparent;font-size:20px;font-weight:700;letter-spacing:-.2px;color:var(--text);font-family:inherit;padding:0;outline:none;width:100%;}
+.editable-title:focus{background:#FFFDE6;border-radius:4px;padding:2px 6px;}
+.editable-sub{border:none;background:transparent;font-size:12px;color:var(--text-2);font-family:inherit;padding:0;outline:none;width:100%;display:block;margin-top:2px;}
+.editable-sub:focus{background:#FFFDE6;border-radius:4px;padding:2px 6px;}
+
+/* section */
+.sec{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;}
+.sec-head{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);}
+.sec-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;}
+.sec-actions{display:flex;gap:6px;align-items:center;}
+
+/* editable cell */
+.ec{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;width:100%;}
+.ec:focus{background:#FFFDE6;border-radius:4px;padding:2px 5px;margin:-2px -5px;width:calc(100% + 10px);}
+.ec-sm{font-size:11px;color:var(--text-3);}
+.ec-sm:focus{background:#FFFDE6;border-radius:4px;padding:1px 4px;}
+.ec-ta{border:none;background:transparent;font:inherit;font-size:12px;color:var(--text-2);padding:0;outline:none;resize:none;width:100%;min-height:28px;}
+.ec-ta:focus{background:#FFFDE6;border-radius:4px;padding:2px 5px;}
+.ec-sel{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;cursor:pointer;}
+.ec-sel:focus{background:#FFFDE6;border-radius:4px;padding:2px 4px;}
+
+/* ── 캠페인 개요 테이블 ── */
+.ov-table{width:100%;border-collapse:collapse;}
+.ov-table td{padding:8px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.ov-table tr:last-child td{border-bottom:none;}
+.ov-key{width:160px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);}
+.ov-del{width:32px;text-align:center;}
+
+/* ── 예산배분 테이블 ── */
+.bud-table{width:100%;border-collapse:collapse;}
+.bud-table th{padding:7px 14px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:left;white-space:nowrap;}
+.bud-table th.r{text-align:right;}
+.bud-table th:last-child{border-right:none;}
+.bud-table td{padding:9px 14px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;}
+.bud-table td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.bud-table td:last-child{border-right:none;}
+.bud-table tr:last-child td{border-bottom:none;}
+.bud-total td{background:var(--gray-50);font-weight:700;border-top:2px solid var(--border);}
+.bucket-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle;}
+.diff-pos{color:#A32D2D;font-size:11px;font-weight:700;} .diff-neg{color:#0F6E56;font-size:11px;font-weight:700;} .diff-zero{color:var(--text-3);font-size:11px;}
+.mini-bar-wrap{height:4px;background:var(--gray-100);border-radius:2px;width:80px;display:inline-block;vertical-align:middle;}
+.mini-bar-fill{height:4px;border-radius:2px;}
+.bar-ok{background:#1D9E75;} .bar-over{background:#A32D2D;} .bar-low{background:var(--blue-600);}
+
+/* ── 콜센터/가이드 테이블 ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.info-table{width:100%;border-collapse:collapse;}
+.info-table td{padding:7px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.info-table tr:last-child td{border-bottom:none;}
+.it-lbl{width:130px;background:var(--gray-50);}
+.it-lbl-ec{font-size:11px;font-weight:600;color:var(--text-2);}
+.it-del{width:28px;text-align:center;}
+
+/* ── 버킷별 세부 채널 테이블 ── */
+.bucket-section{margin-bottom:20px;}
+.bucket-sec-head{display:flex;align-items:center;gap:10px;padding:10px 16px;border-radius:var(--r-lg) var(--r-lg) 0 0;border:1px solid transparent;border-bottom:none;}
+.bsh-e{background:var(--blue-50);border-color:var(--blue-100);}
+.bsh-x{background:var(--green-50);border-color:var(--green-100);}
+.bsh-t{background:var(--coral-50);border-color:#F5C4B3;}
+.bsh-p{background:#F3EEFF;border-color:#C9B8F5;}
+.bsh-g{background:#E8F8F2;border-color:#9AE0C3;}
+.bsh-title{font-size:14px;font-weight:700;flex:1;}
+.bsh-e .bsh-title{color:var(--blue-800);}
+.bsh-x .bsh-title{color:var(--green-800);}
+.bsh-t .bsh-title{color:var(--coral-800);}
+.bsh-p .bsh-title{color:#4A2C8F;}
+.bsh-g .bsh-title{color:#0D5C3E;}
+.bsh-amounts{text-align:right;font-size:11px;}
+.bsh-target{opacity:.7;margin-bottom:2px;}
+.bsh-e .bsh-target,.bsh-e .bsh-sum{color:var(--blue-800);}
+.bsh-x .bsh-target,.bsh-x .bsh-sum{color:var(--green-800);}
+.bsh-t .bsh-target,.bsh-t .bsh-sum{color:var(--coral-800);}
+.bsh-p .bsh-target,.bsh-p .bsh-sum{color:#4A2C8F;}
+.bsh-g .bsh-target,.bsh-g .bsh-sum{color:#0D5C3E;}
+.bsh-sum{font-size:15px;font-weight:700;}
+.bsh-actions{display:flex;gap:6px;align-items:center;}
+
+.ch-table{width:100%;border-collapse:collapse;min-width:1200px;}
+.ch-table th{padding:7px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;text-align:left;}
+.ch-table th.r{text-align:right;}
+.ch-table th.ag{background:#EEF5FF;color:var(--blue-800);border-bottom:2px solid var(--blue-200);}
+.ch-table th:last-child{border-right:none;}
+.ch-table td{padding:8px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;}
+.ch-table td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.ch-table td.ag{background:rgba(230,241,251,.2);}
+.ch-table td:last-child{border-right:none;}
+.ch-table tr:last-child td{border-bottom:none;}
+.ch-total td{background:var(--gray-50);font-weight:700;border-top:2px solid var(--border);}
+.ch-ing td{background:#F0F6FF;}
+.ch-alt td{background:#F4FAF0;}
+.ch-2nd td{background:#FFFBF2;}
+.ch-off td{background:#FAFAFA;color:var(--text-3);}
+
+.badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:3px;white-space:nowrap;}
+.b-60{background:var(--blue-50);color:var(--blue-800);}
+.b-90{background:var(--green-50);color:var(--green-800);}
+.b-q{background:var(--amber-50);color:var(--amber-800);}
+.b-ing{background:var(--blue-100);color:var(--blue-800);}
+.b-alt{background:var(--green-100);color:var(--green-800);}
+.b-2nd{background:var(--amber-100);color:var(--amber-800);}
+.b-1st{background:#B5D4F4;color:var(--blue-900);}
+.b-off{background:var(--gray-100);color:var(--gray-500);}
+
+.col-no{width:32px;text-align:center;}
+.col-ch{width:130px;}
+.col-bud{width:130px;}
+.col-sec{width:75px;}
+.col-wish{width:75px;text-align:right;}
+.col-roi{width:65px;text-align:right;}
+.col-req{min-width:180px;}
+.col-conf{width:85px;}
+.col-amt{width:120px;}
+.col-unit{width:110px;}
+.col-cmt{min-width:150px;}
+.col-del{width:44px;text-align:center;}
+
+/* grand bar */
+.grand-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.grand-bar-left{font-size:12px;color:var(--text-2);}
+
+/* status bar */
+.sbar{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:9px 36px;display:flex;align-items:center;gap:14px;z-index:100;}
+.sdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px;}
+.d-ok{background:#1D9E75;} .d-warn{background:#BA7517;} .d-saving{background:var(--blue-600);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;}
+.modal-bg.on{display:flex;}
+.modal{background:var(--surface);border-radius:var(--r-lg);padding:24px;width:520px;max-width:95vw;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.modal-lg{width:680px;}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px;}
+.mf{margin-bottom:12px;}
+.ml{font-size:10px;color:var(--text-2);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+.mi{width:100%;border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font:inherit;outline:none;font-size:13px;}
+.mi:focus{border-color:var(--blue-600);}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.m-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px;}
+
+/* toast */
+.toast{position:fixed;top:20px;right:24px;background:var(--gray-800);color:#fff;font-size:12px;padding:10px 16px;border-radius:var(--r);opacity:0;transition:opacity .3s;z-index:999;pointer-events:none;}
+.toast.on{opacity:1;}
+
+/* add-bucket-btn */
+.add-bkt-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:2px dashed var(--border);border-radius:var(--r-lg);background:transparent;color:var(--text-3);font-size:13px;font-family:inherit;cursor:pointer;margin-bottom:16px;transition:all .15s;}
+.add-bkt-btn:hover{border-color:var(--blue-200);color:var(--blue-600);background:var(--blue-50);}
+
+/* roi colors */
+.roi-h{color:#0F6E56;font-weight:700;} .roi-m{color:var(--blue-600);} .roi-l{color:var(--text-3);}
+.muted{color:var(--text-3);text-decoration:line-through;}
+.fw7{font-weight:700;font-variant-numeric:tabular-nums;}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HOME SCREEN ══════════ -->
+<div id="screen-home" class="screen active">
+<div class="home-wrap">
+  <div class="home-header">
+    <div>
+      <div class="home-title">청약가이드 매니저</div>
+      <div class="home-sub">월별 DRTV 청약가이드를 생성·관리합니다</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewGuideModal()">+ 새 청약가이드 생성</button>
+  </div>
+  <div id="guide-list-wrap"></div>
+</div>
+</div>
+
+<!-- ══════════ GUIDE SCREEN ══════════ -->
+<div id="screen-guide" class="screen">
+<div class="guide-page">
+
+  <!-- topbar -->
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">← 목록</button>
+    <div class="topbar-title-wrap">
+      <input class="editable-title" id="guide-title-input" value="" onchange="updateGuideMeta('title',this.value)" />
+      <input class="editable-sub" id="guide-sub-input" value="" onchange="updateGuideMeta('subtitle',this.value)" />
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="deleteCurrentGuide()">🗑 삭제</button>
+    <button class="btn btn-primary" onclick="manualSave()">💾 저장</button>
+  </div>
+
+  <!-- ① 캠페인 개요 -->
+  <div class="sec" style="margin-bottom:14px;">
+    <div class="sec-head">
+      <span class="sec-label">캠페인 개요</span>
+      <div class="sec-actions">
+        <button class="btn-icon" onclick="addOvRow()" title="항목 추가">＋</button>
+      </div>
+    </div>
+    <div id="ov-wrap"></div>
+  </div>
+
+  <!-- ② 예산 배분표 -->
+  <div class="sec" style="margin-bottom:14px;">
+    <div class="sec-head">
+      <span class="sec-label">버킷별 예산 배분</span>
+      <div class="sec-actions">
+        <span style="font-size:11px;color:var(--text-3);">버킷 채널 합산값 자동 반영</span>
+        <button class="btn btn-sm btn-ghost" onclick="openBucketModal()">+ 버킷 추가</button>
+      </div>
+    </div>
+    <div id="budget-table-wrap"></div>
+  </div>
+
+  <!-- ③ 콜센터/가이드 -->
+  <div class="two-col" style="margin-bottom:14px;">
+    <div class="sec">
+      <div class="sec-head">
+        <span class="sec-label">콜센터 운영 시간대</span>
+        <button class="btn-icon" onclick="addCctRow()">＋</button>
+      </div>
+      <div id="cct-wrap"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-head">
+        <span class="sec-label">공통 편성 가이드</span>
+        <button class="btn-icon" onclick="addGuideRow()">＋</button>
+      </div>
+      <div id="guide-wrap"></div>
+    </div>
+  </div>
+
+  <!-- ④ 버킷별 세부 채널 -->
+  <div id="buckets-wrap"></div>
+  <button class="add-bkt-btn" onclick="openBucketModal()">+ 새 버킷 추가</button>
+
+</div>
+</div>
+
+<!-- Status bar -->
+<div class="sbar" id="sbar" style="display:none;">
+  <span style="font-size:11px;color:var(--text-2);"><span class="sdot d-ok" id="sDot"></span><span id="sTxt">저장됨</span></span>
+  <span style="font-size:11px;color:var(--text-3);">마지막 저장: <strong id="sTime">-</strong></span>
+  <span style="font-size:11px;color:var(--text-3);margin-left:auto;">셀 클릭 후 수정 → 자동 저장</span>
+</div>
+
+<!-- Modal: 새 가이드 -->
+<div class="modal-bg" id="newGuideModal">
+  <div class="modal">
+    <div class="modal-title">새 청약가이드 생성</div>
+    <div class="mf"><div class="ml">제목 *</div><input class="mi" id="ng-title" placeholder="예: WFP 2026년 8월 미디어플랜 가이드"></div>
+    <div class="mf"><div class="ml">부제</div><input class="mi" id="ng-sub" placeholder="예: 2026년 8월 · 브리프 기준"></div>
+    <div class="mrow">
+      <div class="mf"><div class="ml">광고주</div><input class="mi" id="ng-client" placeholder="예: WFP"></div>
+      <div class="mf"><div class="ml">총 예산 (VAT 별도)</div><input class="mi" id="ng-budget" type="number" placeholder="330000000"></div>
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('newGuideModal')">취소</button>
+      <button class="btn btn-primary" onclick="createGuide()">생성</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 버킷 추가 -->
+<div class="modal-bg" id="bucketModal">
+  <div class="modal">
+    <div class="modal-title">버킷 추가</div>
+    <div class="mf"><div class="ml">버킷 이름 *</div><input class="mi" id="bm-name" placeholder="예: 기존 DRTV, 신규 확장, 지상파"></div>
+    <div class="mrow">
+      <div class="mf"><div class="ml">목표 예산 (VAT 별도)</div><input class="mi" id="bm-target" type="number" placeholder="170000000"></div>
+      <div class="mf"><div class="ml">색상 테마</div>
+        <select class="mi" id="bm-theme">
+          <option value="e">파랑 (기존 DRTV)</option>
+          <option value="x">초록 (신규 확장)</option>
+          <option value="t">주황 (지상파)</option>
+          <option value="p">보라</option>
+          <option value="g">청록</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf"><div class="ml">설명</div><input class="mi" id="bm-note" placeholder="버킷 설명 (선택)"></div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('bucketModal')">취소</button>
+      <button class="btn btn-primary" onclick="addBucket()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 채널 추가 -->
+<div class="modal-bg" id="chModal">
+  <div class="modal">
+    <div class="modal-title">채널 추가</div>
+    <input type="hidden" id="ch-bucket-id">
+    <div class="mrow">
+      <div class="mf"><div class="ml">채널명 *</div><input class="mi" id="ch-name" placeholder="예: SBS Biz"></div>
+      <div class="mf"><div class="ml">구분</div>
+        <select class="mi" id="ch-type">
+          <option value="normal">일반</option>
+          <option value="ing">협의 중</option>
+          <option value="alt">대안</option>
+          <option value="2nd">2순위</option>
+          <option value="1st">1순위</option>
+          <option value="off">제외</option>
+        </select>
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mf"><div class="ml">광고비 (VAT 별도)</div><input class="mi" id="ch-budget" type="number" placeholder="10000000"></div>
+      <div class="mf"><div class="ml">초수</div>
+        <select class="mi" id="ch-sec">
+          <option value="60초">60초</option>
+          <option value="90초">90초</option>
+          <option value="확인 필요">확인 필요</option>
+          <option value="-">-</option>
+        </select>
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mf"><div class="ml">희망 횟수</div><input class="mi" id="ch-wish" type="number" placeholder="100"></div>
+      <div class="mf"><div class="ml">참고 ROI</div><input class="mi" id="ch-roi" type="number" step="0.01" placeholder="0.77"></div>
+    </div>
+    <div class="mf"><div class="ml">요청사항</div><textarea class="mi" id="ch-req" rows="2" placeholder="요청 내용..."></textarea></div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('chModal')">취소</button>
+      <button class="btn btn-primary" onclick="addChannel()">추가</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+// ★★★ Firebase config ★★★
+const firebaseConfig = {
+  apiKey:            "AIzaSyDpColK3e6FSOKLzwCdLqrO5WkWYVNqGXA",
+  authDomain:        "media-guideline-dtv.firebaseapp.com",
+  databaseURL:       "https://media-guideline-dtv-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "media-guideline-dtv",
+  storageBucket:     "media-guideline-dtv.firebasestorage.app",
+  messagingSenderId: "889580527444",
+  appId:             "1:889580527444:web:db11730364cf724e4ef2c1",
+  measurementId:     "G-T79G3NMWMY"
+};
+// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+try {
+  const app = initializeApp(firebaseConfig);
+  const db  = getDatabase(app);
+  window.__saveDB = (data) => set(ref(db,'guides'), data).then(()=>setSaved('저장됨')).catch(()=>setSaved('저장 실패'));
+
+  // 새 키 'guides' 먼저 시도
+  onValue(ref(db,'guides'), snap => {
+    const v = snap.val();
+    if(v) {
+      window.STORE = v;
+      if(window.__onLoaded) window.__onLoaded();
+    } else {
+      // 'guides' 키 없으면 구 키 'wfp_july2026' 확인
+      onValue(ref(db,'wfp_july2026'), snap2 => {
+        const v2 = snap2.val();
+        if(v2) {
+          window.STORE = v2;
+          if(window.__onLoaded) window.__onLoaded(); // 마이그레이션 처리
+        } else {
+          if(window.__initStore) window.__initStore();
+        }
+      }, {onlyOnce:true});
+    }
+    setSaved('Firebase 연결됨');
+  }, {onlyOnce:true});
+
+  // 이후 실시간 변경 감지
+  onValue(ref(db,'guides'), snap => {
+    const v = snap.val();
+    if(v && v.guides) {
+      window.STORE = v;
+      if(window.__renderAll) window.__renderAll();
+    }
+  });
+} catch(e){ setSaved('오프라인 모드'); }
+</script>
+
+<script>
+// ══════════════════════════════════════════════════
+// STORE  — { guides: { [id]: GuideDoc } }
+// GuideDoc = { id, title, subtitle, meta, overview[], cct[], guide[], buckets:{[bid]:{...}} }
+// ══════════════════════════════════════════════════
+window.STORE = { guides:{} };
+let currentGuideId = null;
+let saveTimer = null;
+
+window.__onLoaded  = () => { renderHomeList(); if(currentGuideId) renderGuide(currentGuideId); };
+window.__initStore = () => { window.STORE={guides:{}}; renderHomeList(); };
+
+// ── helpers ──────────────────────────────────────
+const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt  = n => n?'₩'+Number(n).toLocaleString('ko-KR'):'-';
+const fmtN = n => { const v=parseInt(String(n||'').replace(/[^0-9]/g,'')); return isNaN(v)?'':v.toLocaleString('ko-KR'); };
+const unF  = s => { const v=parseInt(String(s||'').replace(/[^0-9]/g,'')); return isNaN(v)?0:v; };
+const num  = s => { const v=parseInt(String(s||'').replace(/[^0-9]/g,'')); return isNaN(v)?null:v; };
+const uid  = () => '_'+Math.random().toString(36).slice(2,9);
+const now  = () => new Date().toLocaleString('ko-KR');
+const THEME_COLORS = {e:'#185FA5',x:'#3B6D11',t:'#993C1D',p:'#4A2C8F',g:'#0D5C3E'};
+const THEME_CLS    = {e:'bsh-e',x:'bsh-x',t:'bsh-t',p:'bsh-p',g:'bsh-g'};
+
+function getGuide(id){ return window.STORE.guides[id]; }
+function G(){ return getGuide(currentGuideId); }
+
+function secBadge(s){
+  if(s==='60초') return `<span class="badge b-60">60초</span>`;
+  if(s==='90초') return `<span class="badge b-90">90초</span>`;
+  if(s==='확인 필요') return `<span class="badge b-q">확인 필요</span>`;
+  return `<span style="color:var(--text-3)">-</span>`;
+}
+function typeBadge(t){
+  const m={ing:'b-ing 협의 중',alt:'b-alt 대안','2nd':'b-2nd 2순위','1st':'b-1st 1순위',off:'b-off 제외'};
+  const v=m[t]; if(!v) return '';
+  const [cls,txt]=v.split(' ');
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+function rowCls(t){return{ing:'ch-ing',alt:'ch-alt','2nd':'ch-2nd',off:'ch-off'}[t]||'';}
+function roiCls(r){if(!r)return'roi-l';return r>=0.9?'roi-h':r>=0.6?'roi-m':'roi-l';}
+
+// ── save ─────────────────────────────────────────
+function schedSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(manualSave,2500); }
+function manualSave(){
+  if(window.__saveDB) window.__saveDB(window.STORE);
+  else { localStorage.setItem('guides_local',JSON.stringify(window.STORE)); setSaved('로컬 저장됨'); }
+}
+function setSaved(msg){
+  const d=document.getElementById('sDot'); const t=document.getElementById('sTxt'); const st=document.getElementById('sTime');
+  if(d) d.className='sdot d-ok';
+  if(t) t.textContent=msg||'저장됨';
+  if(st) st.textContent=now();
+}
+function setSaving(){
+  const d=document.getElementById('sDot'); const t=document.getElementById('sTxt');
+  if(d) d.className='sdot d-saving'; if(t) t.textContent='저장 중...';
+}
+function markUnsaved(){
+  const d=document.getElementById('sDot'); const t=document.getElementById('sTxt');
+  if(d) d.className='sdot d-warn'; if(t) t.textContent='미저장';
+}
+
+// ── screen ────────────────────────────────────────
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+  document.getElementById('sbar').style.display = id==='guide'?'flex':'none';
+}
+
+// ── HOME ──────────────────────────────────────────
+function renderHomeList(){
+  const wrap = document.getElementById('guide-list-wrap');
+  const guides = Object.values(window.STORE.guides||{}).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!guides.length){
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-state-icon">📋</div><div class="empty-state-title">아직 청약가이드가 없습니다</div><div>상단의 "새 청약가이드 생성" 버튼을 눌러 시작하세요.</div></div>`;
+    return;
+  }
+  wrap.innerHTML=`<div class="guide-grid">${guides.map(g=>{
+    const bktCount = Object.keys(g.buckets||{}).length;
+    const totalBudget = Object.values(g.buckets||{}).reduce((s,b)=>s+(b.target||0),0);
+    return `<div class="guide-card" onclick="openGuide('${g.id}')">
+      <div class="gc-tag">${esc(g.meta?.client||'')}</div>
+      <div class="gc-title">${esc(g.title||'제목 없음')}</div>
+      <div class="gc-sub">${esc(g.subtitle||'')}</div>
+      <div class="gc-meta">
+        <div class="gc-stat">버킷 ${bktCount}개 · 총예산 ${fmt(totalBudget)}</div>
+        <div class="gc-actions">
+          <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteGuide('${g.id}')">삭제</button>
+          <button class="btn btn-primary btn-xs">열기</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function goHome(){ showScreen('home'); renderHomeList(); currentGuideId=null; }
+
+// ── CREATE GUIDE ──────────────────────────────────
+function openNewGuideModal(){
+  ['ng-title','ng-sub','ng-client','ng-budget'].forEach(id=>document.getElementById(id).value='');
+  openModal('newGuideModal');
+}
+function createGuide(){
+  const title = document.getElementById('ng-title').value.trim();
+  if(!title){ alert('제목을 입력하세요.'); return; }
+  const id = uid();
+  const g = {
+    id, title,
+    subtitle: document.getElementById('ng-sub').value.trim(),
+    createdAt: new Date().toISOString(),
+    meta: {
+      client: document.getElementById('ng-client').value.trim(),
+      totalBudget: parseInt(document.getElementById('ng-budget').value)||0,
+    },
+    overview: [
+      {id:uid(),key:'광고주',val:document.getElementById('ng-client').value.trim()||'',sub:''},
+      {id:uid(),key:'총 광고비 (VAT 별도)',val:document.getElementById('ng-budget').value?fmt(parseInt(document.getElementById('ng-budget').value)):'',sub:''},
+      {id:uid(),key:'캠페인 기간',val:'',sub:''},
+      {id:uid(),key:'운영 소재',val:'',sub:''},
+      {id:uid(),key:'테스트 방식',val:'',sub:''},
+    ],
+    cct: [
+      {id:uid(),label:'기본 운영시간',val:''},
+      {id:uid(),label:'확장 가능 시간',val:''},
+    ],
+    guide: [
+      {id:uid(),label:'편성 간격',val:'1시간 내 최대 2회 — 동일 채널 초과 금지'},
+      {id:uid(),label:'큐시트 우선',val:'기존 큐시트 우선 — 안정화 후 채널 실험'},
+    ],
+    buckets: {}
+  };
+  window.STORE.guides[id] = g;
+  closeModal('newGuideModal');
+  manualSave();
+  openGuide(id);
+  toast('새 청약가이드가 생성되었습니다.');
+}
+
+function deleteGuide(id){
+  if(!confirm('이 청약가이드를 삭제하시겠습니까?')) return;
+  delete window.STORE.guides[id];
+  manualSave(); renderHomeList();
+  toast('삭제되었습니다.');
+}
+function deleteCurrentGuide(){ if(currentGuideId){ deleteGuide(currentGuideId); goHome(); } }
+
+// ── OPEN GUIDE ────────────────────────────────────
+function openGuide(id){
+  currentGuideId = id;
+  showScreen('guide');
+  renderGuide(id);
+}
+function renderGuide(id){
+  const g = getGuide(id); if(!g) return;
+  document.getElementById('guide-title-input').value = g.title||'';
+  document.getElementById('guide-sub-input').value   = g.subtitle||'';
+  renderOverview();
+  renderBudgetTable();
+  renderCct();
+  renderGuideInfo();
+  renderBuckets();
+}
+
+// ── META ──────────────────────────────────────────
+function updateGuideMeta(field,val){ const g=G(); if(!g)return; g[field]=val; markUnsaved(); schedSave(); }
+
+// ── OVERVIEW ─────────────────────────────────────
+function renderOverview(){
+  const g=G(); if(!g) return;
+  const rows=g.overview||[];
+  const el=document.getElementById('ov-wrap'); if(!el) return;
+  el.innerHTML=`<table class="ov-table">
+    ${rows.map(r=>`<tr>
+      <td class="ov-key"><input class="ec" style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;" value="${esc(r.key)}" onchange="updateOv('${r.id}','key',this.value)"></td>
+      <td>
+        <input class="ec" value="${esc(r.val)}" onchange="updateOv('${r.id}','val',this.value)">
+        ${r.sub!==undefined?`<input class="ec ec-sm" value="${esc(r.sub)}" placeholder="부제..." onchange="updateOv('${r.id}','sub',this.value)">`:``}
+      </td>
+      <td class="ov-del"><button class="btn-icon" onclick="removeOv('${r.id}')">✕</button></td>
+    </tr>`).join('')}
+    <tr><td colspan="3" style="padding:6px 16px;"><button class="btn-icon" style="font-size:12px;" onclick="addOvRow()">＋ 항목 추가</button></td></tr>
+  </table>`;
+}
+function updateOv(id,field,val){ const g=G(); const r=(g.overview||[]).find(x=>x.id===id); if(r){r[field]=val;markUnsaved();schedSave();} }
+function removeOv(id){ const g=G(); g.overview=(g.overview||[]).filter(x=>x.id!==id); renderOverview(); markUnsaved(); schedSave(); }
+function addOvRow(){ const g=G(); if(!g.overview)g.overview=[]; g.overview.push({id:uid(),key:'항목',val:'',sub:''}); renderOverview(); markUnsaved(); schedSave(); }
+
+// ── BUDGET TABLE ──────────────────────────────────
+function getBucketStats(bid){
+  const g=G(); const b=g.buckets[bid]; if(!b) return {};
+  const rows=(b.rows||[]).filter(r=>r.type!=='off'&&r.type!=='2nd');
+  const sumBudget = rows.reduce((s,r)=>s+(r.budget||0),0);
+  const sumWish   = rows.reduce((s,r)=>s+(r.wish||0),0);
+  const sumConf   = rows.reduce((s,r)=>s+(num(r.ag?.confirmed)||0),0);
+  const sumAmt    = rows.reduce((s,r)=>s+(num(r.ag?.amt)||(r.budget||0)),0);
+  const uRows     = rows.filter(r=>num(r.ag?.confirmed)>0);
+  const avgUnit   = uRows.length===0?null:Math.round(uRows.reduce((s,r)=>{const a=num(r.ag?.amt)||(r.budget||0),c=num(r.ag?.confirmed);return s+(c>0?a/c:0);},0)/uRows.length);
+  return {sumBudget,sumWish,sumConf,sumAmt,avgUnit};
+}
+
+function renderBudgetTable(){
+  const g=G(); if(!g) return;
+  const el=document.getElementById('budget-table-wrap'); if(!el) return;
+  const bids = Object.keys(g.buckets||{});
+  if(!bids.length){ el.innerHTML='<div style="padding:16px;font-size:12px;color:var(--text-3);">버킷이 없습니다. 아래에서 버킷을 추가하세요.</div>'; return; }
+
+  const totalTarget  = bids.reduce((s,bid)=>s+(g.buckets[bid].target||0),0);
+  let   totalBudget  = 0, totalWish=0, totalConf=0, totalAmt=0;
+
+  const rows = bids.map(bid=>{
+    const b=g.buckets[bid];
+    const s=getBucketStats(bid);
+    const target=b.target||0;
+    const diff=s.sumBudget-target;
+    const pct=target>0?Math.min(Math.round(s.sumBudget/target*100),150):0;
+    const barW=Math.min(pct,100);
+    const barCls=pct>100?'bar-over':pct>=80?'bar-ok':'bar-low';
+    const diffTag=diff===0?`<span class="diff-zero">일치</span>`:diff>0?`<span class="diff-pos">▲${fmt(diff)}</span>`:`<span class="diff-neg">▼${fmt(Math.abs(diff))}</span>`;
+    totalBudget+=s.sumBudget||0; totalWish+=s.sumWish||0; totalConf+=s.sumConf||0; totalAmt+=s.sumAmt||0;
+    return `<tr>
+      <td>
+        <span class="bucket-dot" style="background:${THEME_COLORS[b.theme]||'#888'};"></span>
+        <input class="ec" style="width:calc(100% - 20px);" value="${esc(b.name)}" onchange="updateBucketField('${bid}','name',this.value)">
+      </td>
+      <td class="r">
+        <input class="ec" style="text-align:right;font-weight:700;"
+          value="${fmtN(b.target)}" placeholder="목표 예산"
+        onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+          onblur="this.value=fmtN(this.value);updateBucketField('${bid}','target',unF(this.value))"
+          onchange="updateBucketField('${bid}','target',unF(this.value))">
+      </td>
+      <td class="r fw7">${fmt(s.sumBudget)}</td>
+      <td>${diffTag}<br>
+        <div class="mini-bar-wrap"><div class="mini-bar-fill ${barCls}" style="width:${barW}%"></div></div>
+        <span style="font-size:10px;color:var(--text-3);">${pct}%</span>
+      </td>
+      <td class="r">${s.sumWish?s.sumWish.toLocaleString()+'회':'-'}</td>
+      <td class="r">${s.sumAmt>0?fmt(s.sumAmt):'-'}</td>
+      <td class="r">${s.sumConf>0?s.sumConf.toLocaleString()+'회':'-'}</td>
+      <td class="r">${s.avgUnit?fmt(s.avgUnit):'-'}</td>
+      <td style="text-align:center;"><button class="btn-icon" onclick="removeBucket('${bid}')">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  const totDiff=totalBudget-totalTarget;
+  const totDiffTag=totDiff===0?`<span class="diff-zero">일치</span>`:totDiff>0?`<span class="diff-pos">▲${fmt(totDiff)}</span>`:`<span class="diff-neg">▼${fmt(Math.abs(totDiff))}</span>`;
+  const totPct=totalTarget>0?Math.min(Math.round(totalBudget/totalTarget*100),150):0;
+  const totBarW=Math.min(totPct,100);
+  const totBarCls=totPct>100?'bar-over':totPct>=80?'bar-ok':'bar-low';
+  const totAvgUnit=totalConf>0?Math.round(totalAmt/totalConf):null;
+
+  el.innerHTML=`<table class="bud-table">
+    <thead><tr>
+      <th style="width:160px;">버킷</th>
+      <th class="r" style="width:150px;">목표 예산</th>
+      <th class="r" style="width:140px;">채널 합산</th>
+      <th style="width:130px;">달성률</th>
+      <th class="r" style="width:80px;">희망 횟수</th>
+      <th class="r" style="width:130px;">확정 금액</th>
+      <th class="r" style="width:80px;">확정 횟수</th>
+      <th class="r" style="width:120px;">스팟단가 평균</th>
+      <th style="width:36px;"></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+    <tfoot><tr class="bud-total">
+      <td>전체 합계</td>
+      <td class="r">${fmt(totalTarget)}</td>
+      <td class="r fw7">${fmt(totalBudget)}</td>
+      <td>${totDiffTag}<br><div class="mini-bar-wrap"><div class="mini-bar-fill ${totBarCls}" style="width:${totBarW}%"></div></div> <span style="font-size:10px;color:var(--text-3);">${totPct}%</span></td>
+      <td class="r">${totalWish?totalWish.toLocaleString()+'회':'-'}</td>
+      <td class="r">${totalAmt>0?fmt(totalAmt):'-'}</td>
+      <td class="r">${totalConf>0?totalConf.toLocaleString()+'회':'-'}</td>
+      <td class="r">${totAvgUnit?fmt(totAvgUnit):'-'}</td>
+      <td></td>
+    </tr></tfoot>
+  </table>`;
+}
+
+// ── CCT & GUIDE ───────────────────────────────────
+function renderCct(){
+  const g=G(); const el=document.getElementById('cct-wrap'); if(!el||!g) return;
+  el.innerHTML=`<table class="info-table">${(g.cct||[]).map(r=>`<tr>
+    <td class="it-lbl"><input class="ec it-lbl-ec" value="${esc(r.label)}" onchange="updateInfo('cct','${r.id}','label',this.value)"></td>
+    <td><input class="ec" style="font-size:13px;" value="${esc(r.val)}" onchange="updateInfo('cct','${r.id}','val',this.value)"></td>
+    <td class="it-del"><button class="btn-icon" onclick="removeInfo('cct','${r.id}')">✕</button></td>
+  </tr>`).join('')}</table>`;
+}
+function renderGuideInfo(){
+  const g=G(); const el=document.getElementById('guide-wrap'); if(!el||!g) return;
+  el.innerHTML=`<table class="info-table">${(g.guide||[]).map(r=>`<tr>
+    <td class="it-lbl"><input class="ec it-lbl-ec" value="${esc(r.label)}" onchange="updateInfo('guide','${r.id}','label',this.value)"></td>
+    <td><input class="ec" style="font-size:13px;" value="${esc(r.val)}" onchange="updateInfo('guide','${r.id}','val',this.value)"></td>
+    <td class="it-del"><button class="btn-icon" onclick="removeInfo('guide','${r.id}')">✕</button></td>
+  </tr>`).join('')}</table>`;
+}
+function updateInfo(sec,id,field,val){ const g=G(); const r=(g[sec]||[]).find(x=>x.id===id); if(r){r[field]=val;markUnsaved();schedSave();} }
+function removeInfo(sec,id){ const g=G(); g[sec]=(g[sec]||[]).filter(x=>x.id!==id); if(sec==='cct')renderCct(); else renderGuideInfo(); markUnsaved(); schedSave(); }
+function addCctRow(){ const g=G(); if(!g.cct)g.cct=[]; g.cct.push({id:uid(),label:'항목',val:''}); renderCct(); markUnsaved(); schedSave(); }
+function addGuideRow(){ const g=G(); if(!g.guide)g.guide=[]; g.guide.push({id:uid(),label:'항목',val:''}); renderGuideInfo(); markUnsaved(); schedSave(); }
+
+// ── BUCKET CRUD ───────────────────────────────────
+function openBucketModal(){ ['bm-name','bm-note'].forEach(x=>document.getElementById(x).value=''); document.getElementById('bm-target').value=''; document.getElementById('bm-theme').value='e'; openModal('bucketModal'); }
+function addBucket(){
+  const name=document.getElementById('bm-name').value.trim(); if(!name){alert('버킷 이름을 입력하세요.');return;}
+  const g=G(); const bid=uid();
+  g.buckets[bid]={ id:bid, name, theme:document.getElementById('bm-theme').value, target:parseInt(document.getElementById('bm-target').value)||0, note:document.getElementById('bm-note').value.trim(), rows:[] };
+  closeModal('bucketModal'); renderBudgetTable(); renderBuckets(); markUnsaved(); schedSave(); toast(`"${name}" 버킷이 추가되었습니다.`);
+}
+function updateBucketField(bid,field,val){ const g=G(); if(!g.buckets[bid])return; if(field==='target')g.buckets[bid][field]=parseInt(val)||0; else g.buckets[bid][field]=val; renderBudgetTable(); if(field==='name')renderBuckets(); markUnsaved(); schedSave(); }
+function removeBucket(bid){ if(!confirm('이 버킷을 삭제하시겠습니까? 채널도 모두 삭제됩니다.'))return; const g=G(); delete g.buckets[bid]; renderBudgetTable(); renderBuckets(); markUnsaved(); schedSave(); }
+
+// ── CHANNEL CRUD ──────────────────────────────────
+let currentBucketId=null;
+function openChModal(bid){ currentBucketId=bid; ['ch-name','ch-budget','ch-wish','ch-roi','ch-req'].forEach(x=>document.getElementById(x).value=''); document.getElementById('ch-type').value='normal'; document.getElementById('ch-sec').value='60초'; openModal('chModal'); }
+function addChannel(){
+  const name=document.getElementById('ch-name').value.trim(); if(!name){alert('채널명을 입력하세요.');return;}
+  const g=G(); const b=g.buckets[currentBucketId]; if(!b)return;
+  const budget=parseInt(document.getElementById('ch-budget').value)||0;
+  const ch={id:uid(),ch:name,type:document.getElementById('ch-type').value,budget,sec:document.getElementById('ch-sec').value,wish:parseInt(document.getElementById('ch-wish').value)||null,roi:parseFloat(document.getElementById('ch-roi').value)||null,req:document.getElementById('ch-req').value,ag:{sec:'',confirmed:'',amt:budget?String(budget):'',cmt:''}};
+  if(!b.rows) b.rows=[];
+  b.rows.push(ch);
+  closeModal('chModal'); renderBuckets(); renderBudgetTable(); markUnsaved(); schedSave();
+}
+function removeChannel(bid,cid){ const g=G(); const b=g.buckets[bid]; if(!b)return; b.rows=(b.rows||[]).filter(r=>r.id!==cid); renderBuckets(); renderBudgetTable(); markUnsaved(); schedSave(); }
+function updateCh(bid,cid,field,val){
+  const g=G(); const b=g.buckets[bid]; if(!b)return;
+  const r=(b.rows||[]).find(x=>x.id===cid); if(!r)return;
+  if(field==='budget')r.budget=parseInt(val)||0;
+  else if(field==='wish')r.wish=parseInt(val)||null;
+  else if(field==='roi')r.roi=parseFloat(val)||null;
+  else r[field]=val;
+  renderBudgetTable(); markUnsaved(); schedSave();
+}
+function updateAg(bid,cid,field,val){
+  const g=G(); const b=g.buckets[bid]; if(!b)return;
+  const r=(b.rows||[]).find(x=>x.id===cid); if(!r)return;
+  if(!r.ag)r.ag={sec:'',confirmed:'',amt:'',cmt:''};
+  r.ag[field]=val;
+  // amt 입력 시 숫자만 저장
+  if(field==='amt'||field==='confirmed') recalcUnit(bid,cid);
+  renderBudgetTable(); markUnsaved(); schedSave();
+}
+function recalcUnit(bid,cid){
+  const g=G(); const b=g.buckets[bid]; if(!b)return;
+  const r=(b.rows||[]).find(x=>x.id===cid); if(!r||!r.ag)return;
+  const a=num(r.ag.amt)||(r.budget||0), c=num(r.ag.confirmed);
+  const el=document.getElementById(`unit-${cid}`);
+  if(el) el.innerHTML = (a&&c&&c>0)?`<span style="font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;">${fmt(Math.round(a/c))}</span>`:`<span style="color:var(--text-3);">-</span>`;
+}
+
+// ── RENDER BUCKETS ────────────────────────────────
+function renderBuckets(){
+  const g=G(); if(!g) return;
+  const el=document.getElementById('buckets-wrap'); if(!el) return;
+  const bids=Object.keys(g.buckets||{});
+  if(!bids.length){ el.innerHTML=''; return; }
+  el.innerHTML=bids.map((bid,idx)=>{
+    const b=g.buckets[bid];
+    const s=getBucketStats(bid);
+    const cls=THEME_CLS[b.theme]||'bsh-e';
+    const rows=b.rows||[];
+    const active=rows.filter(r=>r.type!=='off'&&r.type!=='2nd');
+
+    return `<div class="bucket-section" id="bucket-${bid}">
+      <div class="bucket-sec-head ${cls}">
+        <span class="bsh-title">
+          <span class="bucket-dot" style="background:${THEME_COLORS[b.theme]||'#888'};width:8px;height:8px;"></span>
+          ${esc(b.name)}
+        </span>
+        <div class="bsh-amounts">
+          <div class="bsh-target">목표: ${fmt(b.target)} (VAT 별도)</div>
+          <div class="bsh-sum" id="bsh-sum-${bid}">${fmt(s.sumBudget)} <span style="font-size:11px;font-weight:400;">채널 합산 / 희망 ${s.sumWish||0}회</span></div>
+        </div>
+        <div class="bsh-actions">
+          <button class="btn btn-sm btn-ghost" onclick="openChModal('${bid}')">+ 채널 추가</button>
+          <button class="btn btn-xs btn-danger" onclick="removeBucket('${bid}')">버킷 삭제</button>
+        </div>
+      </div>
+      <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 var(--r-lg) var(--r-lg);overflow-x:auto;background:var(--surface);">
+        <table class="ch-table">
+          <thead><tr>
+            <th class="col-no">#</th>
+            <th class="col-ch">채널</th>
+            <th class="col-bud r">광고비 (VAT 별도)</th>
+            <th class="col-sec">초수</th>
+            <th class="col-wish r">희망 횟수</th>
+            <th class="col-roi r">참고 ROI</th>
+            <th class="col-req">요청사항</th>
+            <th class="ag" style="width:90px;">확정 금액</th>
+            <th class="ag" style="width:80px;">확정 초수</th>
+            <th class="ag r" style="width:75px;">확정 횟수</th>
+            <th class="ag r" style="width:110px;">스팟단가</th>
+            <th class="ag" style="min-width:140px;">코멘트</th>
+            <th class="col-del">관리</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map((r,i)=>{
+              const isOff=r.type==='off';
+              const unit = (()=>{ const a=num(r.ag?.amt)||(r.budget||0),c=num(r.ag?.confirmed); return (a&&c&&c>0)?Math.round(a/c):null; })();
+              const amtDefault=r.ag?.amt||(r.budget?String(r.budget):'');
+              return `<tr class="${rowCls(r.type)}">
+                <td class="col-no" style="color:var(--text-3);text-align:center;">${i+1}</td>
+                <td class="col-ch">
+                  <input class="ec" value="${esc(r.ch)}" style="${isOff?'text-decoration:line-through;color:var(--text-3)':''}" onchange="updateCh('${bid}','${r.id}','ch',this.value)">
+                  ${typeBadge(r.type)}
+                </td>
+                <td class="col-bud r">
+                  <input class="ec" style="text-align:right;font-weight:700;"
+                    value="${fmtN(r.budget)}"
+                    onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+                    onblur="this.value=fmtN(this.value)||''"
+                    onchange="updateCh('${bid}','${r.id}','budget',unF(this.value))">
+                </td>
+                <td class="col-sec">
+                  <select class="ec-sel" onchange="updateCh('${bid}','${r.id}','sec',this.value)">
+                    ${['60초','90초','확인 필요','-'].map(o=>`<option ${r.sec===o?'selected':''}>${o}</option>`).join('')}
+                  </select>
+                </td>
+                <td class="col-wish r">
+                  <input class="ec" style="text-align:right;width:50px;" value="${r.wish||''}" placeholder="-"
+                    onchange="updateCh('${bid}','${r.id}','wish',this.value)">회
+                </td>
+                <td class="col-roi ${roiCls(r.roi)} r">
+                  <input class="ec ${roiCls(r.roi)}" style="text-align:right;width:45px;" value="${r.roi!=null?r.roi:''}" placeholder="-"
+                    onchange="updateCh('${bid}','${r.id}','roi',this.value)">
+                </td>
+                <td class="col-req">
+                  <textarea class="ec-ta" onchange="updateCh('${bid}','${r.id}','req',this.value)">${esc(r.req||'')}</textarea>
+                </td>
+                <td class="ag">
+                  <input class="ec" style="font-variant-numeric:tabular-nums;"
+                    value="${fmtN(amtDefault)}"
+                    onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+                    onblur="this.value=fmtN(this.value)||''"
+                    onchange="updateAg('${bid}','${r.id}','amt',unF(this.value).toString())">
+                </td>
+                <td class="ag">
+                  <select class="ec-sel" onchange="updateAg('${bid}','${r.id}','sec',this.value)">
+                    ${['','60초','90초','확인 필요','-'].map(o=>`<option ${(r.ag?.sec||'')==o?'selected':''}>${o}</option>`).join('')}
+                  </select>
+                </td>
+                <td class="ag r">
+                  <input class="ec" style="text-align:right;width:50px;" value="${r.ag?.confirmed||''}" placeholder="-"
+                    onchange="updateAg('${bid}','${r.id}','confirmed',this.value)">회
+                </td>
+                <td class="ag r" id="unit-${r.id}">
+                  ${unit?`<span style="font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;">${fmt(unit)}</span>`:`<span style="color:var(--text-3);">-</span>`}
+                </td>
+                <td class="ag">
+                  <textarea class="ec-ta" placeholder="코멘트..." onchange="updateAg('${bid}','${r.id}','cmt',this.value)">${esc(r.ag?.cmt||'')}</textarea>
+                </td>
+                <td class="col-del" style="text-align:center;">
+                  <button class="btn-icon" onclick="removeChannel('${bid}','${r.id}')">✕</button>
+                </td>
+              </tr>`;
+            }).join('')}
+            <tr class="ch-total">
+              <td colspan="2">합계</td>
+              <td class="r">${fmt(active.reduce((s,r)=>s+(r.budget||0),0))}</td>
+              <td></td>
+              <td class="r">${active.reduce((s,r)=>s+(r.wish||0),0)}회</td>
+              <td></td><td></td>
+              <td class="r">${fmt(active.reduce((s,r)=>s+(num(r.ag?.amt)||(r.budget||0)),0))}</td>
+              <td></td>
+              <td class="r">${active.reduce((s,r)=>s+(num(r.ag?.confirmed)||0),0)}회</td>
+              <td></td><td></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── MODAL helpers ─────────────────────────────────
+function openModal(id){ document.getElementById(id).classList.add('on'); }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+
+// ── TOAST ─────────────────────────────────────────
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2500); }
+
+// ── INIT ──────────────────────────────────────────
+window.fmtN=fmtN; window.unF=unF;
+
+// ── 기존 데이터 마이그레이션 함수 ─────────────────
+function migrateOldData(old) {
+  const id = 'wfp_july2026';
+  const bktOrder = old._buckets || ['existing','expand','terre'];
+  const BUCKET_DEFAULTS = {
+    existing:{name:'기존 DRTV',theme:'e'},
+    expand:  {name:'신규 확장', theme:'x'},
+    terre:   {name:'지상파',    theme:'t'},
+  };
+  const buckets = {};
+  bktOrder.forEach(bid => {
+    const b = old[bid]; if(!b) return;
+    const def = BUCKET_DEFAULTS[bid] || {name:b.label||bid, theme:'e'};
+    buckets[bid] = {
+      id: bid,
+      name:  b.label || def.name,
+      theme: def.theme,
+      target: b.target || 0,
+      note:   b.note   || '',
+      rows: (b.rows||[]).map(r=>({
+        ...r,
+        ag: r.ag || {sec:'',confirmed:'',amt:r.budget?String(r.budget):'',cmt:''}
+      }))
+    };
+  });
+  return {
+    id,
+    title:    (old._meta&&old._meta.title)    || 'WFP — 7월 미디어플랜 가이드',
+    subtitle: (old._meta&&old._meta.subtitle) || '2026년 7월 · 브리프 기준',
+    createdAt: new Date('2026-07-01').toISOString(),
+    meta: {client:'WFP', totalBudget:330000000},
+    overview: (old._overview&&old._overview.length) ? old._overview : [
+      {id:'ov1',key:'광고주',             val:'WFP',                                         sub:'세계식량계획'},
+      {id:'ov2',key:'총 광고비 (VAT 별도)',val:'₩330,000,000',                              sub:'VAT 포함 → ₩363,000,000'},
+      {id:'ov3',key:'캠페인 기간',         val:'2026년 7월',                                 sub:''},
+      {id:'ov4',key:'운영 소재',           val:'Frontline 60"/90" / Mother&Son 60"/90"',     sub:''},
+      {id:'ov5',key:'테스트 방식',         val:'H2H',                                        sub:'소재별 콜번호 채널별 분리'},
+      {id:'ov6',key:'콜센터 인원',         val:'4인 → 6인',                                  sub:'토요일 확장 운영'},
+      {id:'ov7',key:'정기후원 목표',       val:'월 7,000원',                                  sub:'ASK 기준'},
+    ],
+    cct: (old._cct&&old._cct.length) ? old._cct : [
+      {id:'c1',label:'인원 확충',      val:'상담원 4인 → 6인'},
+      {id:'c2',label:'요일 확장',      val:'토요일 확장 운영 추가'},
+      {id:'c3',label:'기본 운영시간',  val:'CCT 운영시간 내 우선 편성'},
+      {id:'c4',label:'확장 가능 시간', val:'과밀 시 오전 7시 / 오후 8시 이후 고려'},
+    ],
+    guide: (old._guide&&old._guide.length) ? old._guide : [
+      {id:'g1',label:'편성 간격',   val:'1시간 내 최대 2회 — 동일 채널 초과 금지'},
+      {id:'g2',label:'큐시트 우선', val:'기존 큐시트 우선 — 안정화 후 채널 실험'},
+      {id:'g3',label:'H2H 분산',    val:'H2H 소재 간격 분산 — 두 소재 노출 타이트하지 않게'},
+      {id:'g4',label:'토요일',      val:'토요일 포함 편성 — 일요일 콜센터 운영 여부 확인'},
+    ],
+    buckets
+  };
+}
+
+// Firebase onValue 핸들러 — 구 구조 자동 마이그레이션
+window.__onLoaded = function() {
+  const store = window.STORE;
+  if(store && store.guides) {
+    // 새 구조 정상
+    renderHomeList();
+    if(currentGuideId) renderGuide(currentGuideId);
+  } else if(store && (store._buckets || store.existing || store.expand || store.terre)) {
+    // 구 구조 → 마이그레이션
+    const migrated = migrateOldData(store);
+    window.STORE = { guides: { [migrated.id]: migrated } };
+    manualSave();
+    renderHomeList();
+    toast('이전 데이터를 새 형식으로 가져왔습니다. WFP 7월 가이드를 확인하세요.');
+  } else {
+    renderHomeList();
+    if(currentGuideId) renderGuide(currentGuideId);
+  }
+};
+window.__initStore = function() { window.STORE={guides:{}}; renderHomeList(); };
+
+// 로컬스토리지 복구 — 새 구조 우선, 구 구조 있으면 마이그레이션
+(function initFromLocal() {
+  // ① 새 구조
+  try {
+    const raw = localStorage.getItem('guides_local');
+    if(raw) { const p=JSON.parse(raw); if(p&&p.guides){ window.STORE=p; renderHomeList(); return; } }
+  } catch(e){}
+
+  // ② 로컬스토리지 전체 키를 순회해서 구 구조 탐색
+  try {
+    for(let i=0; i<localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const raw = localStorage.getItem(key);
+      if(!raw || raw[0]!=='{') continue;
+      try {
+        const old = JSON.parse(raw);
+        // 구 구조 판별: _buckets 배열 또는 existing/expand/terre 버킷 키 존재
+        if(old && (
+          (Array.isArray(old._buckets) && old._buckets.length) ||
+          old.existing || old.expand || old.terre
+        )) {
+          const migrated = migrateOldData(old);
+          window.STORE = { guides: { [migrated.id]: migrated } };
+          localStorage.setItem('guides_local', JSON.stringify(window.STORE));
+          renderHomeList();
+          toast('이전 데이터를 새 형식으로 가져왔습니다.');
+          return;
+        }
+      } catch(e){}
+    }
+  } catch(e){}
+
+  // ③ 아무것도 없으면 → WFP 7월 기본 가이드 자동 생성
+  const defaultGuide = migrateOldData({
+    _buckets: ['existing','expand','terre'],
+    existing: {
+      label:'기존 DRTV', target:170000000,
+      rows:[
+        {id:'e1',ch:'SBS Biz',type:'normal',budget:25000000,sec:'60초',wish:165,roi:2.02,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다',ag:{sec:'',confirmed:'',amt:'25000000',cmt:''}},
+        {id:'e2',ch:'SPOTV pkg',type:'normal',budget:26000000,sec:'90초',wish:90,roi:null,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다 / 시간대·요일 가이드 확대 희망',ag:{sec:'',confirmed:'',amt:'26000000',cmt:''}},
+        {id:'e3',ch:'CBS',type:'normal',budget:15000000,sec:'90초',wish:135,roi:0.97,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다 / 6월 청약 수준 유지',ag:{sec:'',confirmed:'',amt:'15000000',cmt:''}},
+        {id:'e4',ch:'WOW TV',type:'normal',budget:10000000,sec:'90초',wish:110,roi:0.70,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다 / 기존 청약액 1,200만원 100~110회 기준',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e5',ch:'News Y',type:'normal',budget:40000000,sec:'90초',wish:40,roi:0.66,req:'4천만원까진 증액해도 괜찮을 것 같습니다',ag:{sec:'',confirmed:'',amt:'40000000',cmt:''}},
+        {id:'e6',ch:'Lifetime',type:'normal',budget:11000000,sec:'60초',wish:286,roi:0.42,req:'6월 동일 컨디션 유지',ag:{sec:'',confirmed:'',amt:'11000000',cmt:''}},
+        {id:'e7',ch:'BBS',type:'normal',budget:7000000,sec:'90초',wish:117,roi:null,req:'6월 청약 수준 유지',ag:{sec:'',confirmed:'',amt:'7000000',cmt:''}},
+        {id:'e8',ch:'바둑TV',type:'normal',budget:10000000,sec:'90초',wish:240,roi:null,req:'전후CM만 가능 / 중CM 편성 불가 / ₩10,000,000 초과 불가',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e9',ch:'K STAR',type:'normal',budget:10000000,sec:'60초',wish:90,roi:0.31,req:'6월 청약 수준 유지',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e10',ch:'OLIFE',type:'ing',budget:16000000,sec:'90초',wish:150,roi:0.80,req:'장초수 재원 부족 — 현재 매체사 협의 중 / 확정 시 잔여 ₩16,000,000 배분',ag:{sec:'',confirmed:'',amt:'16000000',cmt:''}},
+        {id:'e11',ch:'ENA STORY',type:'alt',budget:10000000,sec:'60초',wish:80,roi:null,req:'OLIFE 불가 시 대안 / ENA 본채널 장초수 불가 → STORY 채널로 변경',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e12',ch:'ENA Play',type:'alt',budget:10000000,sec:'60초',wish:83,roi:0.19,req:'OLIFE 불가 시 대안 / 스팟단가 협의 중 (16.7천→12만원)',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+      ]
+    },
+    expand: {
+      label:'신규 확장', target:128000000,
+      rows:[
+        {id:'x1',ch:'YTN',type:'normal',budget:40000000,sec:'60초',wish:71,roi:0.77,req:'시사 프로그램 효율이 좋은 만큼 YTN 진입도 함께 고려 부탁드립니다',ag:{sec:'',confirmed:'',amt:'40000000',cmt:''}},
+        {id:'x2',ch:'KBS드라마',type:'normal',budget:16500000,sec:'60초',wish:138,roi:1.16,req:'신규 진입',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x3',ch:'MBC드라마넷',type:'normal',budget:16500000,sec:'60초',wish:87,roi:0.77,req:'신규 진입',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x4',ch:'MBC every1',type:'normal',budget:16500000,sec:'60초',wish:75,roi:0.71,req:'신규 진입 / 40회+월중 보너스 최대 5~8회',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x5',ch:'KBSN pkg',type:'normal',budget:16500000,sec:'60초',wish:275,roi:0.76,req:'신규 진입',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x6',ch:'Channel A',type:'normal',budget:11000000,sec:'60초',wish:34,roi:0.80,req:'지상파를 한 곳으로 제한하는 대신 종편 컨디션도 함께 고려 부탁드립니다',ag:{sec:'',confirmed:'',amt:'11000000',cmt:''}},
+        {id:'x7',ch:'MTN 머니투데이',type:'normal',budget:10000000,sec:'확인 필요',wish:88,roi:0.97,req:'초수 매체사 확인 필요',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'x8',ch:'Channel A Plus',type:'normal',budget:6000000,sec:'확인 필요',wish:75,roi:0.13,req:'초수 매체사 확인 필요',ag:{sec:'',confirmed:'',amt:'6000000',cmt:''}},
+        {id:'x9',ch:'MBN',type:'ing',budget:0,sec:'60초',wish:null,roi:0.58,req:'MBN Plus에서 꾸준히 좋은 효율이 나오고 있어 테스트해봐도 좋을 것 같습니다 / 조건 협의 중',ag:{sec:'',confirmed:'',amt:'',cmt:''}},
+      ]
+    },
+    terre: {
+      label:'지상파', target:40380000,
+      rows:[
+        {id:'t1',ch:'EBS',type:'1st',budget:40380000,sec:'60초',wish:106,roi:0.15,req:'늦은 저녁 편성 괜찮으나 심야 10% 미만 유지 / 보너스 83% 구조 / 현재 심야 3.8% 충족',ag:{sec:'',confirmed:'',amt:'40380000',cmt:''}},
+        {id:'t2',ch:'SBS',type:'2nd',budget:50000000,sec:'60초',wish:null,roi:null,req:'EBS 스팟 제약 클 경우 대안 / 주중만 + 일 3회 노출 조건 / 소액집행 불가 — 최소 금액 확인 필요',ag:{sec:'',confirmed:'',amt:'50000000',cmt:''}},
+        {id:'t3',ch:'MBC',type:'off',budget:0,sec:'-',wish:null,roi:null,req:'재원 없음 — 제외',ag:{sec:'',confirmed:'',amt:'',cmt:''}},
+      ]
+    }
+  });
+  window.STORE = { guides: { [defaultGuide.id]: defaultGuide } };
+  localStorage.setItem('guides_local', JSON.stringify(window.STORE));
+  renderHomeList();
+})();
+</script>
+</body>
+</html>
