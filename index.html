@@ -633,10 +633,19 @@ function getBucketStats(bid){
   const sumBudget = rows.reduce((s,r)=>s+(r.budget||0),0);
   const sumWish   = rows.reduce((s,r)=>s+(r.wish||0),0);
   const sumConf   = rows.reduce((s,r)=>s+(num(r.ag?.confirmed)||0),0);
-  const sumAmt    = rows.reduce((s,r)=>s+(num(r.ag?.amt)||(r.budget||0)),0);
+  // 확정금액: 입력값 있으면 사용, 없으면(빈 문자열/null) 광고비로 대체. 단 "0"은 0으로 처리
+  const sumAmt    = rows.reduce((s,r)=>{
+    const a = r.ag?.amt;
+    const v = (a===''||a===null||a===undefined) ? (r.budget||0) : (num(a)||0);
+    return s+v;
+  },0);
   const uRows     = rows.filter(r=>num(r.ag?.confirmed)>0);
-  const avgUnit   = uRows.length===0?null:Math.round(uRows.reduce((s,r)=>{const a=num(r.ag?.amt)||(r.budget||0),c=num(r.ag?.confirmed);return s+(c>0?a/c:0);},0)/uRows.length);
-  return {sumBudget,sumWish,sumConf,sumAmt,avgUnit};
+  const avgUnit   = uRows.length===0?null:Math.round(uRows.reduce((s,r)=>{
+    const a=(r.ag?.amt===''||r.ag?.amt===null||r.ag?.amt===undefined)?(r.budget||0):(num(r.ag?.amt)||0);
+    const c=num(r.ag?.confirmed);
+    return s+(c>0?a/c:0);
+  },0)/uRows.length);
+  return {sumBudget,sumWish,sumConf,sumAmt,avgUnit,chCount:rows.length};
 }
 
 function renderBudgetTable(){
@@ -792,7 +801,11 @@ function syncBudgetDisplay(bid){
   // 채널 합계 행
   const sumBudget = rows.reduce((s,r)=>s+(r.budget||0),0);
   const sumWish   = rows.reduce((s,r)=>s+(r.wish||0),0);
-  const sumAmt    = rows.reduce((s,r)=>s+(num(r.ag?.amt)||(r.budget||0)),0);
+  const sumAmt    = rows.reduce((s,r)=>{
+    const a = r.ag?.amt;
+    const v = (a===''||a===null||a===undefined) ? (r.budget||0) : (num(a)||0);
+    return s+v;
+  },0);
   const sumConf   = rows.reduce((s,r)=>s+(num(r.ag?.confirmed)||0),0);
 
   // 채널 테이블 합계 행
@@ -933,7 +946,7 @@ function renderBuckets(){
           <tbody>
             ${rows.map((r,i)=>{
               const isOff=r.type==='off';
-              const unit = (()=>{ const a=num(r.ag?.amt)||(r.budget||0),c=num(r.ag?.confirmed); return (a&&c&&c>0)?Math.round(a/c):null; })();
+              const unit = (()=>{ const _a=r.ag?.amt,a=(_a===''||_a===null||_a===undefined)?(r.budget||0):(num(_a)||0),c=num(r.ag?.confirmed); return (c&&c>0)?Math.round(a/c):null; })();
               const amtDefault=r.ag?.amt||(r.budget?String(r.budget):'');
               return `<tr class="${rowCls(r.type)}">
                 <td class="col-no" style="color:var(--text-3);text-align:center;">${i+1}</td>
@@ -997,7 +1010,7 @@ function renderBuckets(){
               <td></td>
               <td class="r">${active.reduce((s,r)=>s+(r.wish||0),0)}회</td>
               <td></td><td></td>
-              <td class="r">${fmt(active.reduce((s,r)=>s+(num(r.ag?.amt)||(r.budget||0)),0))}</td>
+              <td class="r">${fmt(active.reduce((s,r)=>{const a=r.ag?.amt;return s+((a===''||a===null||a===undefined)?(r.budget||0):(num(a)||0));},0))}</td>
               <td></td>
               <td class="r">${active.reduce((s,r)=>s+(num(r.ag?.confirmed)||0),0)}회</td>
               <td></td><td></td><td></td>
