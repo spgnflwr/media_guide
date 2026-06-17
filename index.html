@@ -997,7 +997,54 @@ window.__onLoaded = function() {
     if(currentGuideId) renderGuide(currentGuideId);
   }
 };
-window.__initStore = function() { window.STORE={guides:{}}; renderHomeList(); };
+window.__initStore = function() {
+  // Firebase에 데이터 없음 → WFP 기본 가이드 자동 생성 후 저장
+  const defaultGuide = migrateOldData({
+    _buckets: ['existing','expand','terre'],
+    existing: {
+      label:'기존 DRTV', target:170000000,
+      rows:[
+        {id:'e1',ch:'SBS Biz',type:'normal',budget:25000000,sec:'60초',wish:165,roi:2.02,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다',ag:{sec:'',confirmed:'',amt:'25000000',cmt:''}},
+        {id:'e2',ch:'SPOTV pkg',type:'normal',budget:26000000,sec:'90초',wish:90,roi:null,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다 / 시간대·요일 가이드 확대 희망',ag:{sec:'',confirmed:'',amt:'26000000',cmt:''}},
+        {id:'e3',ch:'CBS',type:'normal',budget:15000000,sec:'90초',wish:135,roi:0.97,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다 / 6월 청약 수준 유지',ag:{sec:'',confirmed:'',amt:'15000000',cmt:''}},
+        {id:'e4',ch:'WOW TV',type:'normal',budget:10000000,sec:'90초',wish:110,roi:0.70,req:'꾸준히 효율이 입증되고 있어 매체 볼륨 상향 고려 부탁드립니다 / 기존 청약액 1,200만원 100~110회 기준',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e5',ch:'News Y',type:'normal',budget:40000000,sec:'90초',wish:40,roi:0.66,req:'4천만원까진 증액해도 괜찮을 것 같습니다',ag:{sec:'',confirmed:'',amt:'40000000',cmt:''}},
+        {id:'e6',ch:'Lifetime',type:'normal',budget:11000000,sec:'60초',wish:286,roi:0.42,req:'6월 동일 컨디션 유지',ag:{sec:'',confirmed:'',amt:'11000000',cmt:''}},
+        {id:'e7',ch:'BBS',type:'normal',budget:7000000,sec:'90초',wish:117,roi:null,req:'6월 청약 수준 유지',ag:{sec:'',confirmed:'',amt:'7000000',cmt:''}},
+        {id:'e8',ch:'바둑TV',type:'normal',budget:10000000,sec:'90초',wish:240,roi:null,req:'전후CM만 가능 / 중CM 편성 불가 / ₩10,000,000 초과 불가',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e9',ch:'K STAR',type:'normal',budget:10000000,sec:'60초',wish:90,roi:0.31,req:'6월 청약 수준 유지',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e10',ch:'OLIFE',type:'ing',budget:16000000,sec:'90초',wish:150,roi:0.80,req:'장초수 재원 부족 — 현재 매체사 협의 중 / 확정 시 잔여 ₩16,000,000 배분',ag:{sec:'',confirmed:'',amt:'16000000',cmt:''}},
+        {id:'e11',ch:'ENA STORY',type:'alt',budget:10000000,sec:'60초',wish:80,roi:null,req:'OLIFE 불가 시 대안 / ENA 본채널 장초수 불가 → STORY 채널로 변경',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'e12',ch:'ENA Play',type:'alt',budget:10000000,sec:'60초',wish:83,roi:0.19,req:'OLIFE 불가 시 대안 / 스팟단가 협의 중 (16.7천→12만원)',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+      ]
+    },
+    expand: {
+      label:'신규 확장', target:128000000,
+      rows:[
+        {id:'x1',ch:'YTN',type:'normal',budget:40000000,sec:'60초',wish:71,roi:0.77,req:'시사 프로그램 효율이 좋은 만큼 YTN 진입도 함께 고려 부탁드립니다',ag:{sec:'',confirmed:'',amt:'40000000',cmt:''}},
+        {id:'x2',ch:'KBS드라마',type:'normal',budget:16500000,sec:'60초',wish:138,roi:1.16,req:'신규 진입',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x3',ch:'MBC드라마넷',type:'normal',budget:16500000,sec:'60초',wish:87,roi:0.77,req:'신규 진입',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x4',ch:'MBC every1',type:'normal',budget:16500000,sec:'60초',wish:75,roi:0.71,req:'신규 진입 / 40회+월중 보너스 최대 5~8회',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x5',ch:'KBSN pkg',type:'normal',budget:16500000,sec:'60초',wish:275,roi:0.76,req:'신규 진입',ag:{sec:'',confirmed:'',amt:'16500000',cmt:''}},
+        {id:'x6',ch:'Channel A',type:'normal',budget:11000000,sec:'60초',wish:34,roi:0.80,req:'지상파를 한 곳으로 제한하는 대신 종편 컨디션도 함께 고려 부탁드립니다',ag:{sec:'',confirmed:'',amt:'11000000',cmt:''}},
+        {id:'x7',ch:'MTN 머니투데이',type:'normal',budget:10000000,sec:'확인 필요',wish:88,roi:0.97,req:'초수 매체사 확인 필요',ag:{sec:'',confirmed:'',amt:'10000000',cmt:''}},
+        {id:'x8',ch:'Channel A Plus',type:'normal',budget:6000000,sec:'확인 필요',wish:75,roi:0.13,req:'초수 매체사 확인 필요',ag:{sec:'',confirmed:'',amt:'6000000',cmt:''}},
+        {id:'x9',ch:'MBN',type:'ing',budget:0,sec:'60초',wish:null,roi:0.58,req:'MBN Plus에서 꾸준히 좋은 효율이 나오고 있어 테스트해봐도 좋을 것 같습니다 / 조건 협의 중',ag:{sec:'',confirmed:'',amt:'',cmt:''}},
+      ]
+    },
+    terre: {
+      label:'지상파', target:40380000,
+      rows:[
+        {id:'t1',ch:'EBS',type:'1st',budget:40380000,sec:'60초',wish:106,roi:0.15,req:'늦은 저녁 편성 괜찮으나 심야 10% 미만 유지 / 보너스 83% 구조 / 현재 심야 3.8% 충족',ag:{sec:'',confirmed:'',amt:'40380000',cmt:''}},
+        {id:'t2',ch:'SBS',type:'2nd',budget:50000000,sec:'60초',wish:null,roi:null,req:'EBS 스팟 제약 클 경우 대안 / 주중만 + 일 3회 노출 조건 / 소액집행 불가 — 최소 금액 확인 필요',ag:{sec:'',confirmed:'',amt:'50000000',cmt:''}},
+        {id:'t3',ch:'MBC',type:'off',budget:0,sec:'-',wish:null,roi:null,req:'재원 없음 — 제외',ag:{sec:'',confirmed:'',amt:'',cmt:''}},
+      ]
+    }
+  });
+  window.STORE = { guides: { [defaultGuide.id]: defaultGuide } };
+  manualSave(); // Firebase에 바로 저장
+  renderHomeList();
+};
 
 // 로컬스토리지 복구 — 새 구조 우선, 구 구조 있으면 마이그레이션
 (function initFromLocal() {
