@@ -237,8 +237,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="topbar">
     <button class="topbar-back" onclick="goHome()">← 목록</button>
     <div class="topbar-title-wrap">
-      <input class="editable-title" id="guide-title-input" value="" onchange="updateGuideMeta('title',this.value)" />
-      <input class="editable-sub" id="guide-sub-input" value="" onchange="updateGuideMeta('subtitle',this.value)" />
+      <input class="editable-title" id="guide-title-input" value="" oninput="updateGuideMeta('title',this.value)" />
+      <input class="editable-sub" id="guide-sub-input" value="" oninput="updateGuideMeta('subtitle',this.value)" />
     </div>
     <button class="btn btn-ghost btn-sm" onclick="deleteCurrentGuide()">🗑 삭제</button>
     <button class="btn btn-primary" onclick="manualSave()">💾 저장</button>
@@ -611,10 +611,10 @@ function renderOverview(){
   const el=document.getElementById('ov-wrap'); if(!el) return;
   el.innerHTML=`<table class="ov-table">
     ${rows.map(r=>`<tr>
-      <td class="ov-key"><input class="ec" style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;" value="${esc(r.key)}" onchange="updateOv('${r.id}','key',this.value)"></td>
+      <td class="ov-key"><input class="ec" style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;" value="${esc(r.key)}" oninput="updateOv('${r.id}','key',this.value)"></td>
       <td>
-        <input class="ec" value="${esc(r.val)}" onchange="updateOv('${r.id}','val',this.value)">
-        ${r.sub!==undefined?`<input class="ec ec-sm" value="${esc(r.sub)}" placeholder="부제..." onchange="updateOv('${r.id}','sub',this.value)">`:``}
+        <input class="ec" value="${esc(r.val)}" oninput="updateOv('${r.id}','val',this.value)">
+        ${r.sub!==undefined?`<input class="ec ec-sm" value="${esc(r.sub)}" placeholder="부제..." oninput="updateOv('${r.id}','sub',this.value)">`:``}
       </td>
       <td class="ov-del"><button class="btn-icon" onclick="removeOv('${r.id}')">✕</button></td>
     </tr>`).join('')}
@@ -657,17 +657,17 @@ function renderBudgetTable(){
     const barCls=pct>100?'bar-over':pct>=80?'bar-ok':'bar-low';
     const diffTag=diff===0?`<span class="diff-zero">일치</span>`:diff>0?`<span class="diff-pos">▲${fmt(diff)}</span>`:`<span class="diff-neg">▼${fmt(Math.abs(diff))}</span>`;
     totalBudget+=s.sumBudget||0; totalWish+=s.sumWish||0; totalConf+=s.sumConf||0; totalAmt+=s.sumAmt||0;
-    return `<tr>
+    return `<tr id="brow-${bid}">
       <td>
         <span class="bucket-dot" style="background:${THEME_COLORS[b.theme]||'#888'};"></span>
-        <input class="ec" style="width:calc(100% - 20px);" value="${esc(b.name)}" onchange="updateBucketField('${bid}','name',this.value)">
+        <input class="ec" style="width:calc(100% - 20px);" value="${esc(b.name)}" oninput="updateBucketField('${bid}','name',this.value)">
       </td>
       <td class="r">
         <input class="ec" style="text-align:right;font-weight:700;"
           value="${fmtN(b.target)}" placeholder="목표 예산"
-        onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+          onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
           onblur="this.value=fmtN(this.value);updateBucketField('${bid}','target',unF(this.value))"
-          onchange="updateBucketField('${bid}','target',unF(this.value))">
+          oninput="updateBucketField('${bid}','target',unF(this.value))">
       </td>
       <td class="r fw7">${fmt(s.sumBudget)}</td>
       <td>${diffTag}<br>
@@ -702,7 +702,7 @@ function renderBudgetTable(){
       <th style="width:36px;"></th>
     </tr></thead>
     <tbody>${rows}</tbody>
-    <tfoot><tr class="bud-total">
+    <tfoot><tr class="bud-total" id="bud-total-row">
       <td>전체 합계</td>
       <td class="r">${fmt(totalTarget)}</td>
       <td class="r fw7">${fmt(totalBudget)}</td>
@@ -720,16 +720,16 @@ function renderBudgetTable(){
 function renderCct(){
   const g=G(); const el=document.getElementById('cct-wrap'); if(!el||!g) return;
   el.innerHTML=`<table class="info-table">${(g.cct||[]).map(r=>`<tr>
-    <td class="it-lbl"><input class="ec it-lbl-ec" value="${esc(r.label)}" onchange="updateInfo('cct','${r.id}','label',this.value)"></td>
-    <td><input class="ec" style="font-size:13px;" value="${esc(r.val)}" onchange="updateInfo('cct','${r.id}','val',this.value)"></td>
+    <td class="it-lbl"><input class="ec it-lbl-ec" value="${esc(r.label)}" oninput="updateInfo('cct','${r.id}','label',this.value)"></td>
+    <td><input class="ec" style="font-size:13px;" value="${esc(r.val)}" oninput="updateInfo('cct','${r.id}','val',this.value)"></td>
     <td class="it-del"><button class="btn-icon" onclick="removeInfo('cct','${r.id}')">✕</button></td>
   </tr>`).join('')}</table>`;
 }
 function renderGuideInfo(){
   const g=G(); const el=document.getElementById('guide-wrap'); if(!el||!g) return;
   el.innerHTML=`<table class="info-table">${(g.guide||[]).map(r=>`<tr>
-    <td class="it-lbl"><input class="ec it-lbl-ec" value="${esc(r.label)}" onchange="updateInfo('guide','${r.id}','label',this.value)"></td>
-    <td><input class="ec" style="font-size:13px;" value="${esc(r.val)}" onchange="updateInfo('guide','${r.id}','val',this.value)"></td>
+    <td class="it-lbl"><input class="ec it-lbl-ec" value="${esc(r.label)}" oninput="updateInfo('guide','${r.id}','label',this.value)"></td>
+    <td><input class="ec" style="font-size:13px;" value="${esc(r.val)}" oninput="updateInfo('guide','${r.id}','val',this.value)"></td>
     <td class="it-del"><button class="btn-icon" onclick="removeInfo('guide','${r.id}')">✕</button></td>
   </tr>`).join('')}</table>`;
 }
@@ -765,20 +765,86 @@ function removeChannel(bid,cid){ const g=G(); const b=g.buckets[bid]; if(!b)retu
 function updateCh(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
   const r=(b.rows||[]).find(x=>x.id===cid); if(!r)return;
-  if(field==='budget')r.budget=parseInt(val)||0;
+  if(field==='budget')r.budget=parseInt(String(val).replace(/[^0-9]/g,''))||0;
   else if(field==='wish')r.wish=parseInt(val)||null;
   else if(field==='roi')r.roi=parseFloat(val)||null;
   else r[field]=val;
-  renderBudgetTable(); markUnsaved(); schedSave();
+  refreshBudgetRow(bid); markUnsaved(); schedSave();
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
   const r=(b.rows||[]).find(x=>x.id===cid); if(!r)return;
   if(!r.ag)r.ag={sec:'',confirmed:'',amt:'',cmt:''};
   r.ag[field]=val;
-  // amt 입력 시 숫자만 저장
   if(field==='amt'||field==='confirmed') recalcUnit(bid,cid);
-  renderBudgetTable(); markUnsaved(); schedSave();
+  refreshBudgetRow(bid); markUnsaved(); schedSave();
+}
+
+// 버킷 테이블 전체 재렌더 대신 해당 버킷 행+합계만 업데이트 (실시간 반응성)
+function refreshBudgetRow(bid){
+  const g=G(); if(!g||!g.buckets[bid]) return;
+  const s=getBucketStats(bid);
+  const b=g.buckets[bid];
+  const target=b.target||0;
+  const diff=s.sumBudget-target;
+  const pct=target>0?Math.min(Math.round(s.sumBudget/target*100),150):0;
+  const barW=Math.min(pct,100);
+  const barCls=pct>100?'bar-over':pct>=80?'bar-ok':'bar-low';
+  const diffTag=diff===0?`<span class="diff-zero">일치</span>`:diff>0
+    ?`<span class="diff-pos">▲${fmt(diff)}</span>`
+    :`<span class="diff-neg">▼${fmt(Math.abs(diff))}</span>`;
+
+  // 예산배분표 해당 행 셀만 업데이트
+  const row=document.getElementById(`brow-${bid}`);
+  if(row){
+    const cells=row.querySelectorAll('td');
+    if(cells[2]) cells[2].innerHTML=`<span class="fw7">${fmt(s.sumBudget)}</span>`;
+    if(cells[3]) cells[3].innerHTML=`${diffTag}<br><div class="mini-bar-wrap"><div class="mini-bar-fill ${barCls}" style="width:${barW}%"></div></div><span style="font-size:10px;color:var(--text-3);">${pct}%</span>`;
+    if(cells[4]) cells[4].innerHTML=`${s.sumWish?s.sumWish.toLocaleString()+'회':'-'}`;
+    if(cells[5]) cells[5].innerHTML=`${s.sumAmt>0?fmt(s.sumAmt):'-'}`;
+    if(cells[6]) cells[6].innerHTML=`${s.sumConf>0?s.sumConf.toLocaleString()+'회':'-'}`;
+    if(cells[7]) cells[7].innerHTML=`${s.avgUnit?fmt(s.avgUnit):'-'}`;
+  }
+  // 버킷 헤더 합산도 업데이트
+  const sumEl=document.getElementById(`bsh-sum-${bid}`);
+  if(sumEl) sumEl.innerHTML=`${fmt(s.sumBudget)} <span style="font-size:11px;font-weight:400;">채널 합산 / 희망 ${s.sumWish||0}회</span>`;
+  // 전체 합계 행 업데이트
+  updateBudgetTotalRow();
+}
+
+function updateBudgetTotalRow(){
+  const g=G(); if(!g) return;
+  const bids=Object.keys(g.buckets||{});
+  let totalTarget=0,totalBudget=0,totalWish=0,totalConf=0,totalAmt=0,totalCh=0;
+  bids.forEach(bid=>{
+    const b=g.buckets[bid]; if(!b) return;
+    const s=getBucketStats(bid);
+    totalTarget+=b.target||0;
+    totalBudget+=s.sumBudget||0;
+    totalWish+=s.sumWish||0;
+    totalConf+=s.sumConf||0;
+    totalAmt+=s.sumAmt||0;
+    totalCh+=s.chCount||0;
+  });
+  const totDiff=totalBudget-totalTarget;
+  const totPct=totalTarget>0?Math.min(Math.round(totalBudget/totalTarget*100),150):0;
+  const totBarW=Math.min(totPct,100);
+  const totBarCls=totPct>100?'bar-over':totPct>=80?'bar-ok':'bar-low';
+  const totDiffTag=totDiff===0?`<span class="diff-zero">일치</span>`:totDiff>0
+    ?`<span class="diff-pos">▲${fmt(totDiff)}</span>`
+    :`<span class="diff-neg">▼${fmt(Math.abs(totDiff))}</span>`;
+  const totAvgUnit=totalConf>0?Math.round(totalAmt/totalConf):null;
+  const tr=document.getElementById('bud-total-row');
+  if(tr) tr.innerHTML=`
+    <td>전체 합계</td>
+    <td class="r">${fmt(totalTarget)}</td>
+    <td class="r fw7">${fmt(totalBudget)}</td>
+    <td>${totDiffTag}<br><div class="mini-bar-wrap"><div class="mini-bar-fill ${totBarCls}" style="width:${totBarW}%"></div></div> <span style="font-size:10px;color:var(--text-3);">${totPct}%</span></td>
+    <td class="r">${totalWish?totalWish.toLocaleString()+'회':'-'}</td>
+    <td class="r">${totalAmt>0?fmt(totalAmt):'-'}</td>
+    <td class="r">${totalConf>0?totalConf.toLocaleString()+'회':'-'}</td>
+    <td class="r">${totAvgUnit?fmt(totAvgUnit):'-'}</td>
+    <td></td>`;
 }
 function recalcUnit(bid,cid){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
@@ -841,7 +907,7 @@ function renderBuckets(){
               return `<tr class="${rowCls(r.type)}">
                 <td class="col-no" style="color:var(--text-3);text-align:center;">${i+1}</td>
                 <td class="col-ch">
-                  <input class="ec" value="${esc(r.ch)}" style="${isOff?'text-decoration:line-through;color:var(--text-3)':''}" onchange="updateCh('${bid}','${r.id}','ch',this.value)">
+                  <input class="ec" value="${esc(r.ch)}" style="${isOff?'text-decoration:line-through;color:var(--text-3)':''}" oninput="updateCh('${bid}','${r.id}','ch',this.value)">
                   ${typeBadge(r.type)}
                 </td>
                 <td class="col-bud r">
@@ -849,7 +915,7 @@ function renderBuckets(){
                     value="${fmtN(r.budget)}"
                     onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
                     onblur="this.value=fmtN(this.value)||''"
-                    onchange="updateCh('${bid}','${r.id}','budget',unF(this.value))">
+                    oninput="updateCh('${bid}','${r.id}','budget',unF(this.value))">
                 </td>
                 <td class="col-sec">
                   <select class="ec-sel" onchange="updateCh('${bid}','${r.id}','sec',this.value)">
@@ -858,21 +924,21 @@ function renderBuckets(){
                 </td>
                 <td class="col-wish r">
                   <input class="ec" style="text-align:right;width:50px;" value="${r.wish||''}" placeholder="-"
-                    onchange="updateCh('${bid}','${r.id}','wish',this.value)">회
+                    oninput="updateCh('${bid}','${r.id}','wish',this.value)">회
                 </td>
                 <td class="col-roi ${roiCls(r.roi)} r">
                   <input class="ec ${roiCls(r.roi)}" style="text-align:right;width:45px;" value="${r.roi!=null?r.roi:''}" placeholder="-"
-                    onchange="updateCh('${bid}','${r.id}','roi',this.value)">
+                    oninput="updateCh('${bid}','${r.id}','roi',this.value)">
                 </td>
                 <td class="col-req">
-                  <textarea class="ec-ta" onchange="updateCh('${bid}','${r.id}','req',this.value)">${esc(r.req||'')}</textarea>
+                  <textarea class="ec-ta" oninput="updateCh('${bid}','${r.id}','req',this.value)">${esc(r.req||'')}</textarea>
                 </td>
                 <td class="ag">
                   <input class="ec" style="font-variant-numeric:tabular-nums;"
                     value="${fmtN(amtDefault)}"
                     onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
                     onblur="this.value=fmtN(this.value)||''"
-                    onchange="updateAg('${bid}','${r.id}','amt',unF(this.value).toString())">
+                    oninput="updateAg('${bid}','${r.id}','amt',unF(this.value).toString())">
                 </td>
                 <td class="ag">
                   <select class="ec-sel" onchange="updateAg('${bid}','${r.id}','sec',this.value)">
@@ -881,13 +947,13 @@ function renderBuckets(){
                 </td>
                 <td class="ag r">
                   <input class="ec" style="text-align:right;width:50px;" value="${r.ag?.confirmed||''}" placeholder="-"
-                    onchange="updateAg('${bid}','${r.id}','confirmed',this.value)">회
+                    oninput="updateAg('${bid}','${r.id}','confirmed',this.value)">회
                 </td>
                 <td class="ag r" id="unit-${r.id}">
                   ${unit?`<span style="font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;">${fmt(unit)}</span>`:`<span style="color:var(--text-3);">-</span>`}
                 </td>
                 <td class="ag">
-                  <textarea class="ec-ta" placeholder="코멘트..." onchange="updateAg('${bid}','${r.id}','cmt',this.value)">${esc(r.ag?.cmt||'')}</textarea>
+                  <textarea class="ec-ta" placeholder="코멘트..." oninput="updateAg('${bid}','${r.id}','cmt',this.value)">${esc(r.ag?.cmt||'')}</textarea>
                 </td>
                 <td class="col-del" style="text-align:center;">
                   <button class="btn-icon" onclick="removeChannel('${bid}','${r.id}')">✕</button>
