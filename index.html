@@ -1423,8 +1423,10 @@ function normalizeFirebaseArrays(obj) {
     stringKeys.forEach(k  => { if(val[k]) arr.push(val[k]); });
 
     // 중복 id 제거 (숫자키와 랜덤ID키가 같은 채널을 중복 저장했을 수 있음)
+    // ch도 없는 완전히 빈 row도 제거
     const seen = new Set();
     return arr.filter(r => {
+      if(!r.ch && !r.budget) return false; // ★ 빈 껍데기 row 제거
       if(!r.id) return true;
       if(seen.has(r.id)) return false;
       seen.add(r.id);
