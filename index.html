@@ -437,23 +437,15 @@ try {
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
 
-  // ── 내 세션 ID (접속자 구분용) ──
+  // ── 세션 ID / 이름 ──
   const mySessionId = 'sess_' + Math.random().toString(36).slice(2,9);
-  const myName = '사용자' + mySessionId.slice(-3); // 추후 이름 입력으로 교체 가능
   window.__mySessionId = mySessionId;
-  window.__myName = myName;
-
-  // ── 내가 마지막으로 수정한 필드별 타임스탬프 ──
-  // 로컬 수정 시각을 기록해두고, Firebase 데이터와 비교해서 보호
-  window.__myTimestamps = {}; // { 'bid/cid/field': timestamp }
+  window.__myName = localStorage.getItem('myName') || ('사용자' + mySessionId.slice(-3));
 
   // ── 필드 단위 저장 ──
   window.__saveField = (path, value) => {
-    const ts = Date.now();
-    window.__myTimestamps[path] = ts;
     const updates = {};
     updates[path] = value;
-    updates[path + '/__ts'] = ts; // 타임스탬프 함께 저장
     update(ref(db), updates)
       .then(()=>setSaved('저장됨'))
       .catch(()=>setSaved('저장 실패'));
@@ -476,7 +468,7 @@ try {
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ── 새로고침 ──
+  // ── 🔄 새로고침 — Firebase 최신 1회 로드 ──
   window.__reloadDB = () => {
     setSaving();
     onValue(ref(db,'guides'), snap => {
@@ -484,7 +476,6 @@ try {
       if(v && v.guides) {
         window.STORE = v;
         window.__firebaseLoaded = true;
-        window.__myTimestamps = {}; // 새로고침 시 보호 해제
         if(window.__renderAll) window.__renderAll();
         setSaved('새로고침 완료');
         if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
@@ -492,24 +483,22 @@ try {
     }, {onlyOnce:true});
   };
 
-  // ── Presence: 접속자 등록 ──
+  // ── Presence: 접속자 등록 + 편집 중 셀 표시 ──
   const presenceRef = ref(db, `presence/${mySessionId}`);
-  const savedName = localStorage.getItem('myName') || myName;
-  set(presenceRef, { name: savedName, joinedAt: Date.now(), editing: '' });
-  onDisconnect(presenceRef).remove();
+  set(presenceRef, { name: window.__myName, joinedAt: Date.now(), editing: '' });
+  onDisconnect(presenceRef).remove(); // 브라우저 닫으면 자동 제거
 
   window.__updatePresence = (editing) => {
-    const currentName = localStorage.getItem('myName') || window.__myName || myName;
-    update(presenceRef, { name: currentName, editing: editing||'', updatedAt: Date.now() });
+    const name = localStorage.getItem('myName') || window.__myName;
+    update(presenceRef, { name, editing: editing||'', updatedAt: Date.now() });
   };
 
-  // Presence 리스너 — 접속자 목록 표시
+  // Presence 리스너 — 접속자 목록 실시간 표시
   onValue(ref(db,'presence'), snap => {
-    const all = snap.val() || {};
-    renderPresence(all);
+    renderPresence(snap.val() || {});
   });
 
-  // ── 실시간 동기화 리스너 ──
+  // ── 초기 데이터 로드 (1회) ──
   onValue(ref(db,'guides'), snap => {
     const v = snap.val();
     if(!v) { if(window.__initStore) window.__initStore(); setSaved('Firebase 연결됨'); return; }
@@ -525,14 +514,11 @@ try {
       }, {onlyOnce:true});
       return;
     }
-    if(!window.__firebaseLoaded) {
-      window.STORE = v; window.__firebaseLoaded = true;
-      if(window.__onLoaded) window.__onLoaded(); setSaved('Firebase 연결됨'); return;
-    }
-    // 실시간 병합 — 내가 최근에 수정한 필드는 보호
-    mergeRemoteData(v);
-    setSaved('동기화됨');
-  });
+    window.STORE = v;
+    window.__firebaseLoaded = true;
+    if(window.__onLoaded) window.__onLoaded();
+    setSaved('Firebase 연결됨');
+  }, {onlyOnce:true}); // ← onlyOnce: 실시간 동기화 없음
 
 } catch(e){ setSaved('오프라인 모드'); }
 </script>
@@ -625,102 +611,6 @@ function saveAllBucketMeta() {
 }
 
 // 실시간 원격 데이터 병합 — 타임스탬프로 내 수정 보호
-function mergeRemoteData(remote) {
-  if(!remote || !remote.guides) return;
-  const now = Date.now();
-  const PROTECT_MS = 5000; // 내가 수정 후 5초간 보호
-
-  Object.keys(remote.guides||{}).forEach(gid => {
-    if(!window.STORE.guides) window.STORE.guides = {};
-    if(!window.STORE.guides[gid]) { window.STORE.guides[gid] = remote.guides[gid]; return; }
-    const local = window.STORE.guides[gid];
-    const rem   = remote.guides[gid];
-
-    // 메타/개요/CCT/가이드 — 원격 우선 (카드 저장으로 관리)
-    ['title','subtitle','meta','overview','cct','guide'].forEach(k => {
-      if(rem[k] !== undefined) local[k] = rem[k];
-    });
-
-    // 버킷 구조 — 원격 우선
-    if(rem.buckets) {
-      if(!local.buckets) local.buckets = {};
-      Object.keys(rem.buckets).forEach(bid => {
-        if(!local.buckets[bid]) { local.buckets[bid] = rem.buckets[bid]; return; }
-        const lb = local.buckets[bid];
-        const rb = rem.buckets[bid];
-        lb.name = rb.name; lb.target = rb.target; lb.note = rb.note||'';
-
-        // row 단위 병합
-        if(rb.rows) {
-          if(!lb.rows) lb.rows = [];
-          rb.rows.forEach(remRow => {
-            const idx = lb.rows.findIndex(r=>r.id===remRow.id);
-            const localRow = idx>=0 ? lb.rows[idx] : null;
-
-            if(!localRow) { lb.rows.push(remRow); return; }
-
-            // ag 필드 단위로 타임스탬프 비교
-            const remAg = remRow.ag || {};
-            if(!localRow.ag) localRow.ag = {};
-
-            ['sec','confirmed','amt','cmt'].forEach(field => {
-              const path = `guides/${gid}/buckets/${bid}/rows/${remRow.id}/ag/${field}`;
-              const myTs = window.__myTimestamps?.[path] || 0;
-              const remTs = remAg[`__ts_${field}`] || 0;
-
-              // 내가 최근 5초 내에 수정한 필드는 보호
-              if(now - myTs < PROTECT_MS) return;
-              // 원격 값 적용
-              if(remAg[field] !== undefined) localRow.ag[field] = remAg[field];
-            });
-
-            // ag 외 채널 필드도 동일하게 처리
-            ['budget','wish','roi','req','sec','ch'].forEach(field => {
-              const path = `guides/${gid}/buckets/${bid}/rows/${remRow.id}/${field}`;
-              const myTs = window.__myTimestamps?.[path] || 0;
-              if(now - myTs < PROTECT_MS) return;
-              if(remRow[field] !== undefined) localRow[field] = remRow[field];
-            });
-          });
-        }
-      });
-    }
-  });
-
-  // 화면 업데이트 — 입력 중인 row 값 복원
-  if(currentGuideId) {
-    // 포커스된 input 정보 저장
-    const focused = document.activeElement;
-    const focusedInput = (focused && ['INPUT','TEXTAREA','SELECT'].includes(focused.tagName)) ? focused : null;
-    const focusedValue = focusedInput ? focusedInput.value : null;
-    const focusedRowId = focusedInput?.closest('tr[data-id]')?.dataset?.id;
-
-    renderBudgetTable();
-    renderOverview();
-    renderCct();
-    renderGuideInfo();
-    renderBuckets();
-
-    // 포커스 복원 — 재렌더 후 같은 위치로
-    if(focusedRowId && focusedValue !== null) {
-      setTimeout(()=>{
-        const tr = document.querySelector(`tr[data-id="${focusedRowId}"]`);
-        if(tr) {
-          const inputs = tr.querySelectorAll('input,textarea,select');
-          // 같은 순서의 input 찾아서 포커스+값 복원
-          inputs.forEach(inp => {
-            if(inp.oninput && inp.value !== focusedValue) {
-              // 해당 input이 포커스된 것과 같은 역할인지 확인
-            }
-          });
-        }
-      }, 0);
-    }
-  } else {
-    renderHomeList();
-  }
-}
-
 // ── Presence 렌더링 ─────────────────────────────
 function renderPresence(all) {
   const el = document.getElementById('presence-bar');
@@ -1051,14 +941,11 @@ function updateAg(bid,cid,field,val){
 
 // 필드 단위 저장 래퍼 (디바운스 포함)
 const FIELD_LABELS = {
-  confirmed: '확정횟수', amt: '확정금액', sec: '확정초수', cmt: '코멘트',
-  budget: '광고비', wish: '희망횟수', roi: 'ROI', req: '요청사항', ch: '채널명'
+  confirmed:'확정횟수', amt:'확정금액', sec:'확정초수', cmt:'코멘트',
+  budget:'광고비', wish:'희망횟수', roi:'ROI', req:'요청사항', ch:'채널명'
 };
 const fieldSaveTimers = {};
 function saveField(path, value, displayLabel) {
-  if(!window.__myTimestamps) window.__myTimestamps = {};
-  window.__myTimestamps[path] = Date.now();
-  // 필드명을 한글로 변환
   const fieldKey = path.split('/').pop();
   const label = displayLabel || FIELD_LABELS[fieldKey] || fieldKey;
   if(window.__updatePresence) window.__updatePresence(label);
