@@ -419,9 +419,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, update, onValue, onDisconnect, push, remove, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, update, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// ★★★ Firebase config ★★★
 const firebaseConfig = {
   apiKey:            "AIzaSyDpColK3e6FSOKLzwCdLqrO5WkWYVNqGXA",
   authDomain:        "media-guideline-dtv.firebaseapp.com",
@@ -432,99 +431,93 @@ const firebaseConfig = {
   appId:             "1:889580527444:web:db11730364cf724e4ef2c1",
   measurementId:     "G-T79G3NMWMY"
 };
-// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+// ══════════════════════════════════════════════════
+// Firebase 경로 규칙 (절대 변경 금지)
+// 데이터 루트: guides/guides/{guideId}/...
+// Presence:   presence/{sessionId}
+// ══════════════════════════════════════════════════
+const DB_ROOT = 'guides/guides'; // 실제 데이터 경로
+
 try {
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
 
-  // ── 세션 ID / 이름 ──
-  const mySessionId = 'sess_' + Math.random().toString(36).slice(2,9);
-  window.__mySessionId = mySessionId;
-  window.__myName = localStorage.getItem('myName') || ('사용자' + mySessionId.slice(-3));
+  // 세션
+  const sid = 'sess_' + Math.random().toString(36).slice(2,9);
+  window.__mySessionId = sid;
+  window.__myName = localStorage.getItem('myName') || ('사용자' + sid.slice(-3));
 
-  // ── 필드 단위 저장 ──
+  // ① 필드 단위 저장 (채널 자동 저장)
   window.__saveField = (path, value) => {
-    const updates = {};
-    updates[path] = value;
-    update(ref(db), updates)
+    update(ref(db), { [path]: value })
       .then(()=>setSaved('저장됨'))
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ── 섹션 단위 저장 ──
+  // ② 섹션 저장 (카드별 저장 버튼)
   window.__saveSection = (path, value) => {
     setSaving();
-    const updates = {};
-    updates[path] = value;
-    update(ref(db), updates)
-      .then(()=>{ setSaved('저장됨'); if(window.toast) window.toast('저장되었습니다.'); })
+    update(ref(db), { [path]: value })
+      .then(()=>{ setSaved('저장됨'); window.toast&&window.toast('저장되었습니다.'); })
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ── 전체 저장 (가이드 신규 생성) ──
+  // ③ 전체 저장 (가이드 신규 생성)
   window.__saveDB = (data) => {
-    set(ref(db,'guides'), data)
+    const payload = data.guides || data;
+    set(ref(db, DB_ROOT), payload)
       .then(()=>setSaved('저장됨'))
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ── 🔄 새로고침 — Firebase 최신 1회 로드 ──
+  // ④ 새로고침
   window.__reloadDB = () => {
     setSaving();
-    onValue(ref(db,'guides'), snap => {
+    onValue(ref(db, DB_ROOT), snap => {
       const v = snap.val();
-      if(!v) { setSaved('데이터 없음'); return; }
-      // guides/guides 중첩 구조 처리
-      const data = (v.guides && typeof v.guides === 'object') ? v : { guides: v };
-      window.STORE = data;
-      window.__firebaseLoaded = true;
-      if(window.__renderAll) window.__renderAll();
-      setSaved('새로고침 완료');
-      if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
+      if(v) {
+        window.STORE = { guides: v };
+        window.__firebaseLoaded = true;
+        window.__renderAll && window.__renderAll();
+        setSaved('새로고침 완료');
+        window.toast && window.toast('최신 데이터를 불러왔습니다.');
+      } else {
+        setSaved('데이터 없음');
+      }
     }, {onlyOnce:true});
   };
 
-  // ── Presence: 접속자 등록 + 편집 중 셀 표시 ──
-  const presenceRef = ref(db, `presence/${mySessionId}`);
-  set(presenceRef, { name: window.__myName, joinedAt: Date.now(), editing: '' });
-  onDisconnect(presenceRef).remove(); // 브라우저 닫으면 자동 제거
-
+  // ⑤ Presence
+  const presRef = ref(db, `presence/${sid}`);
+  set(presRef, { name: window.__myName, joinedAt: Date.now(), editing: '' });
+  onDisconnect(presRef).remove();
   window.__updatePresence = (editing) => {
-    const name = localStorage.getItem('myName') || window.__myName;
-    update(presenceRef, { name, editing: editing||'', updatedAt: Date.now() });
+    update(presRef, {
+      name: localStorage.getItem('myName') || window.__myName,
+      editing: editing || '',
+      updatedAt: Date.now()
+    });
   };
-
-  // Presence 리스너 — 접속자 목록 실시간 표시
-  onValue(ref(db,'presence'), snap => {
+  onValue(ref(db, 'presence'), snap => {
     renderPresence(snap.val() || {});
   });
 
-  // ── 초기 데이터 로드 (1회) ──
-  onValue(ref(db,'guides'), snap => {
+  // ⑥ 초기 로드 (1회)
+  onValue(ref(db, DB_ROOT), snap => {
     const v = snap.val();
-    if(!v) { if(window.__initStore) window.__initStore(); setSaved('Firebase 연결됨'); return; }
-    // guides/guides 중첩 구조 처리
-    const data = (v.guides && typeof v.guides === 'object') ? v : { guides: v };
-    if(!data.guides) {
-      // 구 구조 (wfp_july2026 등)
-      if(v._buckets || v.existing || v.expand || v.terre) {
-        window.STORE = v; if(window.__onLoaded) window.__onLoaded(); setSaved('Firebase 연결됨'); return;
-      }
-      onValue(ref(db,'wfp_july2026'), snap2 => {
-        const v2 = snap2.val();
-        if(v2) { window.STORE = v2; if(window.__onLoaded) window.__onLoaded(); }
-        else   { if(window.__initStore) window.__initStore(); }
-        setSaved('Firebase 연결됨');
-      }, {onlyOnce:true});
-      return;
+    if(v) {
+      window.STORE = { guides: v };
+      window.__firebaseLoaded = true;
+      window.__onLoaded && window.__onLoaded();
+      setSaved('Firebase 연결됨');
+    } else {
+      window.__initStore && window.__initStore();
+      setSaved('Firebase 연결됨');
     }
-    window.STORE = data;
-    window.__firebaseLoaded = true;
-    if(window.__onLoaded) window.__onLoaded();
-    setSaved('Firebase 연결됨');
-  }, {onlyOnce:true}); // ← onlyOnce: 실시간 동기화 없음
+  }, {onlyOnce: true});
 
-} catch(e){ setSaved('오프라인 모드'); }
+} catch(e) { setSaved('오프라인 모드'); }
 </script>
 
 <script>
@@ -587,13 +580,13 @@ function saveSection(section) {
   const gid = currentGuideId;
   let path, value;
   if(section === 'overview') {
-    path = `guides/${gid}/overview`; value = g.overview||[];
+    path = `guides/guides/${gid}/overview`; value = g.overview||[];
   } else if(section === 'cct') {
-    path = `guides/${gid}/cct`; value = g.cct||[];
+    path = `guides/guides/${gid}/cct`; value = g.cct||[];
   } else if(section === 'guide') {
-    path = `guides/${gid}/guide`; value = g.guide||[];
+    path = `guides/guides/${gid}/guide`; value = g.guide||[];
   } else if(section === 'meta') {
-    path = `guides/${gid}/meta`; value = g.meta||{};
+    path = `guides/guides/${gid}/meta`; value = g.meta||{};
   }
   if(path && window.__saveSection) {
     window.__saveSection(path, value);
@@ -602,7 +595,7 @@ function saveSection(section) {
 function saveBucket(bid) {
   const g = G(); if(!g||!g.buckets[bid]) return;
   const b = g.buckets[bid];
-  const path = `guides/${currentGuideId}/buckets/${bid}`;
+  const path = `guides/guides/${currentGuideId}/buckets/${bid}`;
   const value = { id:b.id, name:b.name, theme:b.theme, target:b.target, note:b.note||'' };
   if(window.__saveSection) window.__saveSection(path, value);
 }
@@ -929,7 +922,7 @@ function updateCh(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장 (동시 편집 충돌 방지)
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
+  saveField(`guides/guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
@@ -940,7 +933,7 @@ function updateAg(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
+  saveField(`guides/guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 
 // 필드 단위 저장 래퍼 (디바운스 포함)
