@@ -437,7 +437,7 @@ const firebaseConfig = {
 // 데이터 루트: guides/guides/{guideId}/...
 // Presence:   presence/{sessionId}
 // ══════════════════════════════════════════════════
-const DB_ROOT = 'guides/guides'; // 실제 데이터 경로
+const DB_ROOT = 'guides'; // 실제 데이터 경로
 
 try {
   const app = initializeApp(firebaseConfig);
@@ -580,13 +580,13 @@ function saveSection(section) {
   const gid = currentGuideId;
   let path, value;
   if(section === 'overview') {
-    path = `guides/guides/${gid}/overview`; value = g.overview||[];
+    path = `guides/${gid}/overview`; value = g.overview||[];
   } else if(section === 'cct') {
-    path = `guides/guides/${gid}/cct`; value = g.cct||[];
+    path = `guides/${gid}/cct`; value = g.cct||[];
   } else if(section === 'guide') {
-    path = `guides/guides/${gid}/guide`; value = g.guide||[];
+    path = `guides/${gid}/guide`; value = g.guide||[];
   } else if(section === 'meta') {
-    path = `guides/guides/${gid}/meta`; value = g.meta||{};
+    path = `guides/${gid}/meta`; value = g.meta||{};
   }
   if(path && window.__saveSection) {
     window.__saveSection(path, value);
@@ -595,7 +595,7 @@ function saveSection(section) {
 function saveBucket(bid) {
   const g = G(); if(!g||!g.buckets[bid]) return;
   const b = g.buckets[bid];
-  const path = `guides/guides/${currentGuideId}/buckets/${bid}`;
+  const path = `guides/${currentGuideId}/buckets/${bid}`;
   const value = { id:b.id, name:b.name, theme:b.theme, target:b.target, note:b.note||'' };
   if(window.__saveSection) window.__saveSection(path, value);
 }
@@ -922,7 +922,7 @@ function updateCh(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장 (동시 편집 충돌 방지)
-  saveField(`guides/guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
@@ -933,7 +933,7 @@ function updateAg(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장
-  saveField(`guides/guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 
 // 필드 단위 저장 래퍼 (디바운스 포함)
