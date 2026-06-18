@@ -1335,19 +1335,17 @@ function migrateOldData(old) {
 
 // Firebase onValue 핸들러 — 구 구조 자동 마이그레이션
 window.__onLoaded = function() {
-  window.__firebaseLoaded = true; // Firebase에서 로드됨 표시 — 로컬스토리지 fallback 차단
+  window.__firebaseLoaded = true;
   const store = window.STORE;
   if(store && store.guides) {
-    // 새 구조 정상
     renderHomeList();
     if(currentGuideId) renderGuide(currentGuideId);
   } else if(store && (store._buckets || store.existing || store.expand || store.terre)) {
-    // 구 구조 → 마이그레이션
     const migrated = migrateOldData(store);
     window.STORE = { guides: { [migrated.id]: migrated } };
     manualSave();
     renderHomeList();
-    toast('이전 데이터를 새 형식으로 가져왔습니다. WFP 7월 가이드를 확인하세요.');
+    toast('이전 데이터를 새 형식으로 가져왔습니다.');
   } else {
     renderHomeList();
     if(currentGuideId) renderGuide(currentGuideId);
