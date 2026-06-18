@@ -478,6 +478,8 @@ try {
       const v = snap.val();
       if(v) {
         window.STORE = { guides: v };
+        // ★ Firebase 배열 정규화 (숫자키 객체 → 배열 복원)
+        if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
         window.__firebaseLoaded = true;
         window.__onLoaded && window.__onLoaded();
         setSaved('새로고침 완료');
@@ -508,9 +510,13 @@ try {
     const v = snap.val();
     if(v) {
       window.STORE = { guides: v };
-      window.__firebaseLoaded = true;
-      window.__onLoaded && window.__onLoaded();
-      setSaved('Firebase 연결됨');
+      // ★ Firebase 배열 정규화 — module script보다 일반 script가 늦게 실행될 수 있어 setTimeout(0) 보장
+      setTimeout(() => {
+        if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
+        window.__firebaseLoaded = true;
+        window.__onLoaded && window.__onLoaded();
+        setSaved('Firebase 연결됨');
+      }, 0);
     } else {
       window.__initStore && window.__initStore();
       setSaved('Firebase 연결됨');
@@ -908,31 +914,45 @@ function addChannel(){
   const ch={id:uid(),ch:name,type:document.getElementById('ch-type').value,budget,sec:document.getElementById('ch-sec').value,wish:parseInt(document.getElementById('ch-wish').value)||null,roi:parseFloat(document.getElementById('ch-roi').value)||null,req:document.getElementById('ch-req').value,ag:{sec:'',confirmed:'',amt:budget?String(budget):'',cmt:''}};
   if(!b.rows) b.rows=[];
   b.rows.push(ch);
-  closeModal('chModal'); renderBuckets(); renderBudgetTable(); markUnsaved(); schedSave();
+  closeModal('chModal'); renderBuckets(); renderBudgetTable(); markUnsaved();
+  // 추가 후 rows 전체 저장 (인덱스 기반 구조 유지)
+  if(window.__saveSection) window.__saveSection(`guides/${currentGuideId}/buckets/${currentBucketId}/rows`, b.rows);
+  else manualSave();
 }
-function removeChannel(bid,cid){ const g=G(); const b=g.buckets[bid]; if(!b)return; b.rows=(b.rows||[]).filter(r=>r.id!==cid); renderBuckets(); renderBudgetTable(); markUnsaved(); schedSave(); }
+function removeChannel(bid,cid){
+  const g=G(); const b=g.buckets[bid]; if(!b)return;
+  b.rows=(b.rows||[]).filter(r=>r.id!==cid);
+  renderBuckets(); renderBudgetTable(); markUnsaved();
+  // 삭제 후엔 인덱스가 바뀌므로 rows 전체를 저장
+  if(window.__saveSection) window.__saveSection(`guides/${currentGuideId}/buckets/${bid}/rows`, b.rows);
+  else manualSave();
+}
 function updateCh(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
-  const r=(b.rows||[]).find(x=>x.id===cid); if(!r)return;
+  const rows = b.rows||[];
+  const rIdx = rows.findIndex(x=>x.id===cid); if(rIdx<0)return;
+  const r = rows[rIdx];
   if(field==='budget')r.budget=parseInt(String(val).replace(/[^0-9]/g,''))||0;
   else if(field==='wish')r.wish=parseInt(val)||null;
   else if(field==='roi')r.roi=parseFloat(val)||null;
   else r[field]=val;
   syncBudgetDisplay(bid);
   markUnsaved();
-  // 필드 단위 저장 (동시 편집 충돌 방지)
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
+  // 필드 단위 저장 — 인덱스 기반 경로 (Firebase 배열 구조에 맞춤)
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${rIdx}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
-  const r=(b.rows||[]).find(x=>x.id===cid); if(!r)return;
+  const rows = b.rows||[];
+  const rIdx = rows.findIndex(x=>x.id===cid); if(rIdx<0)return;
+  const r = rows[rIdx];
   if(!r.ag)r.ag={sec:'',confirmed:'',amt:'',cmt:''};
   r.ag[field]=val;
   if(field==='amt'||field==='confirmed') recalcUnit(bid,cid);
   syncBudgetDisplay(bid);
   markUnsaved();
-  // 필드 단위 저장
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
+  // 필드 단위 저장 — 인덱스 기반 경로
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${rIdx}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 
 // 필드 단위 저장 래퍼 (디바운스 포함)
@@ -1251,6 +1271,8 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 
 // ── INIT ──────────────────────────────────────────
 window.fmtN=fmtN; window.unF=unF;
+// module script에서도 접근 가능하도록 명시적 노출
+window.normalizeFirebaseArrays = normalizeFirebaseArrays;
 
 // 접속자 이름 설정
 function updateMyName(name) {
@@ -1333,10 +1355,69 @@ function migrateOldData(old) {
   };
 }
 
+// ── Firebase 배열 정규화 ─────────────────────────────
+// Firebase Realtime DB는 배열을 {0:{...}, 1:{...}} 객체로 저장함
+// 로드 후 반드시 배열로 복원해야 .find()/.filter()/.map() 등 정상 동작
+function normalizeFirebaseArrays(obj) {
+  if(!obj || typeof obj !== 'object') return obj;
+
+  // 숫자 키만 있는 객체 → 배열로 변환
+  function toArrayIfNeeded(val) {
+    if(!val || typeof val !== 'object' || Array.isArray(val)) return val;
+    const keys = Object.keys(val);
+    if(keys.length === 0) return val;
+    const isNumericKeys = keys.every(k => /^\d+$/.test(k));
+    if(isNumericKeys) {
+      // 인덱스 순서대로 배열 복원
+      const maxIdx = Math.max(...keys.map(Number));
+      const arr = [];
+      for(let i = 0; i <= maxIdx; i++) {
+        if(val[i] !== undefined && val[i] !== null) arr.push(val[i]);
+      }
+      return arr;
+    }
+    return val;
+  }
+
+  // guides 하위 모든 가이드 순회
+  if(obj.guides) {
+    Object.keys(obj.guides).forEach(gid => {
+      const g = obj.guides[gid];
+      if(!g) return;
+      // overview, cct, guide 배열 정규화
+      ['overview','cct','guide'].forEach(k => {
+        if(g[k]) g[k] = toArrayIfNeeded(g[k]);
+      });
+      // buckets 하위 rows 정규화
+      if(g.buckets) {
+        Object.keys(g.buckets).forEach(bid => {
+          const b = g.buckets[bid];
+          if(!b) return;
+          if(b.rows) {
+            b.rows = toArrayIfNeeded(b.rows);
+            // rows 안의 ag도 객체면 그대로 (ag는 원래 객체)
+            if(Array.isArray(b.rows)) {
+              b.rows.forEach(r => {
+                if(!r.ag) r.ag = {sec:'',confirmed:'',amt:'',cmt:''};
+              });
+            }
+          }
+        });
+      }
+    });
+  }
+  return obj;
+}
+
 // Firebase onValue 핸들러 — 구 구조 자동 마이그레이션
 window.__onLoaded = function() {
   window.__firebaseLoaded = true;
-  const store = window.STORE;
+  let store = window.STORE;
+
+  // ★ 핵심: Firebase 로드 후 반드시 배열 정규화
+  store = normalizeFirebaseArrays(store);
+  window.STORE = store;
+
   if(store && store.guides) {
     renderHomeList();
     if(currentGuideId) renderGuide(currentGuideId);
