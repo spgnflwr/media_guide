@@ -529,7 +529,6 @@ window.STORE = { guides:{} };
 let currentGuideId = null;
 let saveTimer = null;
 
-window.__onLoaded  = () => { renderHomeList(); if(currentGuideId) renderGuide(currentGuideId); };
 window.__initStore = () => { window.STORE={guides:{}}; renderHomeList(); };
 
 // ── helpers ──────────────────────────────────────
