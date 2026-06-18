@@ -494,11 +494,13 @@ try {
 
   // ── Presence: 접속자 등록 ──
   const presenceRef = ref(db, `presence/${mySessionId}`);
-  set(presenceRef, { name: myName, joinedAt: Date.now(), editing: '' });
-  onDisconnect(presenceRef).remove(); // 접속 끊기면 자동 삭제
+  const savedName = localStorage.getItem('myName') || myName;
+  set(presenceRef, { name: savedName, joinedAt: Date.now(), editing: '' });
+  onDisconnect(presenceRef).remove();
 
   window.__updatePresence = (editing) => {
-    update(presenceRef, { editing: editing||'', updatedAt: Date.now() });
+    const currentName = localStorage.getItem('myName') || window.__myName || myName;
+    update(presenceRef, { name: currentName, editing: editing||'', updatedAt: Date.now() });
   };
 
   // Presence 리스너 — 접속자 목록 표시
@@ -685,13 +687,13 @@ function mergeRemoteData(remote) {
     }
   });
 
-  // 화면 업데이트
+  // 화면 업데이트 — 채널 테이블은 재렌더 안 함 (입력 중 깨짐 방지)
   if(currentGuideId) {
-    renderBudgetTable();
+    renderBudgetTable(); // 예산배분표만 업데이트
     renderOverview();
     renderCct();
     renderGuideInfo();
-    renderBuckets();
+    // renderBuckets()는 호출하지 않음 — 입력 중인 값 보호
   } else {
     renderHomeList();
   }
@@ -1011,7 +1013,7 @@ function updateCh(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장 (동시 편집 충돌 방지)
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field]);
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${field}`);
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
@@ -1022,25 +1024,20 @@ function updateAg(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val);
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${field}`);
 }
 
 // 필드 단위 저장 래퍼 (디바운스 포함)
 const fieldSaveTimers = {};
-function saveField(path, value) {
-  // 내 수정 타임스탬프 기록 (보호용)
+function saveField(path, value, displayLabel) {
   if(!window.__myTimestamps) window.__myTimestamps = {};
   window.__myTimestamps[path] = Date.now();
-  // Presence 업데이트
-  if(window.__updatePresence) window.__updatePresence(path.split('/').slice(-2).join('/'));
+  // Presence — 읽기 쉬운 레이블로 표시
+  if(window.__updatePresence) window.__updatePresence(displayLabel || path.split('/').pop());
   clearTimeout(fieldSaveTimers[path]);
   fieldSaveTimers[path] = setTimeout(() => {
-    if(window.__saveField) {
-      window.__saveField(path, value);
-    } else {
-      manualSave();
-    }
-    // 5초 후 Presence editing 초기화
+    if(window.__saveField) window.__saveField(path, value);
+    else manualSave();
     setTimeout(()=>{ if(window.__updatePresence) window.__updatePresence(''); }, 5000);
   }, 800);
 }
@@ -1349,16 +1346,23 @@ function updateMyName(name) {
   if(!name.trim()) return;
   window.__myName = name.trim();
   localStorage.setItem('myName', name.trim());
+  // Presence 즉시 업데이트
   if(window.__updatePresence) window.__updatePresence('');
 }
 
 // 저장된 이름 복구
 (function initMyName() {
   const saved = localStorage.getItem('myName');
+  const el = document.getElementById('my-name-input');
   if(saved) {
     window.__myName = saved;
-    const el = document.getElementById('my-name-input');
     if(el) el.value = saved;
+  } else {
+    // 이름 없으면 입력 유도
+    setTimeout(()=>{
+      const el2 = document.getElementById('my-name-input');
+      if(el2 && !el2.value) el2.focus();
+    }, 500);
   }
 })();
 
