@@ -382,12 +382,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<!-- 코멘트 확장 모달 -->
+<div class="modal-bg" id="cmtModal">
+  <div class="modal" style="width:560px;">
+    <div class="modal-title" id="cmt-modal-title" style="font-size:14px;color:var(--text-2);"></div>
+    <textarea class="mi" id="cmt-modal-text" rows="9"
+      style="font-size:13px;line-height:1.8;resize:vertical;margin-top:4px;"
+      placeholder="코멘트를 입력하세요..."></textarea>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeCmtModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveCmtModal()">저장</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ★★★ Firebase config ★★★
 const firebaseConfig = {
@@ -406,10 +420,20 @@ try {
   const db  = getDatabase(app);
 
   window.__saveDB = (data) => {
-    window.__saving = true; // 저장 중 플래그 — Firebase 응답이 다시 덮어쓰지 않도록
+    window.__saving = true;
     set(ref(db,'guides'), data)
       .then(()=>{ setSaved('저장됨'); setTimeout(()=>{ window.__saving=false; }, 3000); })
       .catch(()=>{ setSaved('저장 실패'); window.__saving=false; });
+  };
+
+  // 필드 단위 저장 — 동시 편집 충돌 방지
+  // path 예: 'guides/wfp_july2026/buckets/existing/rows/e1/ag/confirmed'
+  window.__saveField = (path, value) => {
+    const updates = {};
+    updates[path] = value;
+    update(ref(db), updates)
+      .then(()=>setSaved('저장됨'))
+      .catch(()=>setSaved('저장 실패'));
   };
 
   // 초기 1회만 로드 (onlyOnce)
@@ -780,7 +804,9 @@ function updateCh(bid,cid,field,val){
   else if(field==='roi')r.roi=parseFloat(val)||null;
   else r[field]=val;
   syncBudgetDisplay(bid);
-  markUnsaved(); schedSave();
+  markUnsaved();
+  // 필드 단위 저장 (동시 편집 충돌 방지)
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field]);
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
@@ -789,7 +815,61 @@ function updateAg(bid,cid,field,val){
   r.ag[field]=val;
   if(field==='amt'||field==='confirmed') recalcUnit(bid,cid);
   syncBudgetDisplay(bid);
-  markUnsaved(); schedSave();
+  markUnsaved();
+  // 필드 단위 저장
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val);
+}
+
+// 필드 단위 저장 래퍼 (디바운스 포함)
+const fieldSaveTimers = {};
+function saveField(path, value) {
+  clearTimeout(fieldSaveTimers[path]);
+  fieldSaveTimers[path] = setTimeout(() => {
+    if(window.__saveField) {
+      window.__saveField(path, value);
+    } else {
+      schedSave();
+    }
+  }, 800);
+}
+
+// ID로 채널 찾아서 모달 열기 (특수문자 안전)
+function openCmtById(field, cid, bid) {
+  const g=G(); if(!g) return;
+  const b=g.buckets[bid]; if(!b) return;
+  const r=(b.rows||[]).find(x=>x.id===cid); if(!r) return;
+  const val = field==='req' ? (r.req||'') : (r.ag?.cmt||'');
+  const title = field==='req' ? `요청사항 — ${r.ch}` : `코멘트 — ${r.ch}`;
+  openCmtModal(bid, cid, field, val, title);
+}
+
+// ── 코멘트 확장 모달 ──────────────────────────────
+let _cmtBid='', _cmtCid='', _cmtField='';
+function openCmtModal(bid, cid, field, currentVal, title) {
+  _cmtBid=bid; _cmtCid=cid; _cmtField=field;
+  document.getElementById('cmt-modal-title').textContent = title || '코멘트';
+  document.getElementById('cmt-modal-text').value = currentVal || '';
+  document.getElementById('cmtModal').classList.add('on');
+  setTimeout(()=>document.getElementById('cmt-modal-text').focus(), 100);
+}
+function closeCmtModal() {
+  document.getElementById('cmtModal').classList.remove('on');
+}
+function saveCmtModal() {
+  const val = document.getElementById('cmt-modal-text').value;
+  if(_cmtField === 'req') {
+    updateCh(_cmtBid, _cmtCid, 'req', val);
+    const el = document.getElementById(`req-display-${_cmtCid}`);
+    if(el) { el.textContent = val; }
+  } else if(_cmtField === 'cmt') {
+    updateAg(_cmtBid, _cmtCid, 'cmt', val);
+    const el = document.getElementById(`cmt-display-${_cmtCid}`);
+    if(el) { el.textContent = val; }
+    // + 입력 / ✏ 수정 텍스트 업데이트
+    const hint = el?.nextElementSibling;
+    if(hint) hint.textContent = val ? '✏ 수정' : '+ 입력';
+  }
+  closeCmtModal();
 }
 
 // 버킷 헤더 + 예산배분표 해당 행 + 채널 합계 행을 DOM에서 직접 업데이트
@@ -974,8 +1054,10 @@ function renderBuckets(){
                   <input class="ec ${roiCls(r.roi)}" style="text-align:right;width:45px;" value="${r.roi!=null?r.roi:''}" placeholder="-"
                     oninput="updateCh('${bid}','${r.id}','roi',this.value)">
                 </td>
-                <td class="col-req">
-                  <textarea class="ec-ta" oninput="updateCh('${bid}','${r.id}','req',this.value)">${esc(r.req||'')}</textarea>
+                <td class="col-req" style="cursor:pointer;vertical-align:middle;"
+                  onclick="openCmtById('req','${r.id}','${bid}')">
+                  <span id="req-display-${r.id}" style="font-size:12px;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;">${esc(r.req||'')}</span>
+                  <span style="font-size:10px;color:var(--text-3);">✏ 클릭하여 수정</span>
                 </td>
                 <td class="ag">
                   <input class="ec" style="font-variant-numeric:tabular-nums;"
@@ -996,8 +1078,10 @@ function renderBuckets(){
                 <td class="ag r" id="unit-${r.id}">
                   ${unit?`<span style="font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;">${fmt(unit)}</span>`:`<span style="color:var(--text-3);">-</span>`}
                 </td>
-                <td class="ag">
-                  <textarea class="ec-ta" placeholder="코멘트..." oninput="updateAg('${bid}','${r.id}','cmt',this.value)">${esc(r.ag?.cmt||'')}</textarea>
+                <td class="ag" style="cursor:pointer;vertical-align:middle;"
+                  onclick="openCmtById('cmt','${r.id}','${bid}')">
+                  <span id="cmt-display-${r.id}" style="font-size:12px;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;">${esc(r.ag?.cmt||'')}</span>
+                  <span style="font-size:10px;color:var(--text-3);">${r.ag?.cmt?'✏ 수정':'+ 입력'}</span>
                 </td>
                 <td class="col-del" style="text-align:center;">
                   <button class="btn-icon" onclick="removeChannel('${bid}','${r.id}')">✕</button>
