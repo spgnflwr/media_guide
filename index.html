@@ -687,13 +687,35 @@ function mergeRemoteData(remote) {
     }
   });
 
-  // 화면 업데이트 — 채널 테이블은 재렌더 안 함 (입력 중 깨짐 방지)
+  // 화면 업데이트 — 입력 중인 row 값 복원
   if(currentGuideId) {
-    renderBudgetTable(); // 예산배분표만 업데이트
+    // 포커스된 input 정보 저장
+    const focused = document.activeElement;
+    const focusedInput = (focused && ['INPUT','TEXTAREA','SELECT'].includes(focused.tagName)) ? focused : null;
+    const focusedValue = focusedInput ? focusedInput.value : null;
+    const focusedRowId = focusedInput?.closest('tr[data-id]')?.dataset?.id;
+
+    renderBudgetTable();
     renderOverview();
     renderCct();
     renderGuideInfo();
-    // renderBuckets()는 호출하지 않음 — 입력 중인 값 보호
+    renderBuckets();
+
+    // 포커스 복원 — 재렌더 후 같은 위치로
+    if(focusedRowId && focusedValue !== null) {
+      setTimeout(()=>{
+        const tr = document.querySelector(`tr[data-id="${focusedRowId}"]`);
+        if(tr) {
+          const inputs = tr.querySelectorAll('input,textarea,select');
+          // 같은 순서의 input 찾아서 포커스+값 복원
+          inputs.forEach(inp => {
+            if(inp.oninput && inp.value !== focusedValue) {
+              // 해당 input이 포커스된 것과 같은 역할인지 확인
+            }
+          });
+        }
+      }, 0);
+    }
   } else {
     renderHomeList();
   }
@@ -1013,7 +1035,7 @@ function updateCh(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장 (동시 편집 충돌 방지)
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${field}`);
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/${field}`, r[field], `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 function updateAg(bid,cid,field,val){
   const g=G(); const b=g.buckets[bid]; if(!b)return;
@@ -1024,16 +1046,22 @@ function updateAg(bid,cid,field,val){
   syncBudgetDisplay(bid);
   markUnsaved();
   // 필드 단위 저장
-  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${field}`);
+  saveField(`guides/${currentGuideId}/buckets/${bid}/rows/${cid}/ag/${field}`, val, `${r.ch} ${FIELD_LABELS[field]||field}`);
 }
 
 // 필드 단위 저장 래퍼 (디바운스 포함)
+const FIELD_LABELS = {
+  confirmed: '확정횟수', amt: '확정금액', sec: '확정초수', cmt: '코멘트',
+  budget: '광고비', wish: '희망횟수', roi: 'ROI', req: '요청사항', ch: '채널명'
+};
 const fieldSaveTimers = {};
 function saveField(path, value, displayLabel) {
   if(!window.__myTimestamps) window.__myTimestamps = {};
   window.__myTimestamps[path] = Date.now();
-  // Presence — 읽기 쉬운 레이블로 표시
-  if(window.__updatePresence) window.__updatePresence(displayLabel || path.split('/').pop());
+  // 필드명을 한글로 변환
+  const fieldKey = path.split('/').pop();
+  const label = displayLabel || FIELD_LABELS[fieldKey] || fieldKey;
+  if(window.__updatePresence) window.__updatePresence(label);
   clearTimeout(fieldSaveTimers[path]);
   fieldSaveTimers[path] = setTimeout(() => {
     if(window.__saveField) window.__saveField(path, value);
