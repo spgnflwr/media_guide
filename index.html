@@ -568,6 +568,15 @@ function roiCls(r){if(!r)return'roi-l';return r>=0.9?'roi-h':r>=0.6?'roi-m':'roi
 
 // ── save ─────────────────────────────────────────
 function schedSave(){ /* 채널 데이터는 saveField로 자동 저장 */ }
+
+// 특정 가이드 하나만 Firebase에 저장 (전체 STORE set 방지)
+function saveGuide(gid) {
+  const g = window.STORE.guides[gid]; if(!g) return;
+  if(window.__saveSection) window.__saveSection(`guides/${gid}`, g);
+  else localStorage.setItem('guides_local', JSON.stringify(window.STORE));
+}
+
+// 전체 저장 — 가이드 삭제 시처럼 guides 전체를 교체해야 할 때만 사용
 function manualSave(){
   if(window.__saveDB) window.__saveDB(window.STORE);
   else localStorage.setItem('guides_local',JSON.stringify(window.STORE));
@@ -600,12 +609,17 @@ function saveSection(section) {
 function saveBucket(bid) {
   const g = G(); if(!g||!g.buckets[bid]) return;
   const b = g.buckets[bid];
-  const path = `guides/${currentGuideId}/buckets/${bid}`;
-  const value = { id:b.id, name:b.name, theme:b.theme, target:b.target, note:b.note||'' };
-  if(window.__saveSection) window.__saveSection(path, value);
+  // ★ rows 포함하여 저장 — rows 없이 저장하면 Firebase에서 하위 rows가 삭제됨
+  // 버킷 메타(name/theme/target)만 바꿀 때는 필드 단위 update 사용
+  if(window.__saveField) {
+    window.__saveField(`guides/${currentGuideId}/buckets/${bid}/name`, b.name);
+    window.__saveField(`guides/${currentGuideId}/buckets/${bid}/theme`, b.theme);
+    window.__saveField(`guides/${currentGuideId}/buckets/${bid}/target`, b.target||0);
+    window.__saveField(`guides/${currentGuideId}/buckets/${bid}/note`, b.note||'');
+  }
 }
 
-// 버킷 구조 전체 저장 (이름/목표예산)
+// 버킷 구조 전체 저장 (이름/목표예산) — rows는 건드리지 않음
 function saveAllBucketMeta() {
   const g = G(); if(!g) return;
   Object.keys(g.buckets||{}).forEach(bid => saveBucket(bid));
@@ -717,7 +731,7 @@ function createGuide(){
   };
   window.STORE.guides[id] = g;
   closeModal('newGuideModal');
-  manualSave();
+  saveGuide(id); // ★ 신규 가이드만 저장 — 전체 STORE set 방지
   openGuide(id);
   toast('새 청약가이드가 생성되었습니다.');
 }
@@ -725,7 +739,10 @@ function createGuide(){
 function deleteGuide(id){
   if(!confirm('이 청약가이드를 삭제하시겠습니까?')) return;
   delete window.STORE.guides[id];
-  manualSave(); renderHomeList();
+  // ★ 해당 가이드 경로만 null로 set → 다른 가이드 데이터 보존
+  if(window.__saveField) window.__saveField(`guides/${id}`, null);
+  else manualSave();
+  renderHomeList();
   toast('삭제되었습니다.');
 }
 function deleteCurrentGuide(){ if(currentGuideId){ deleteGuide(currentGuideId); goHome(); } }
@@ -898,11 +915,31 @@ function openBucketModal(){ ['bm-name','bm-note'].forEach(x=>document.getElement
 function addBucket(){
   const name=document.getElementById('bm-name').value.trim(); if(!name){alert('버킷 이름을 입력하세요.');return;}
   const g=G(); const bid=uid();
-  g.buckets[bid]={ id:bid, name, theme:document.getElementById('bm-theme').value, target:parseInt(document.getElementById('bm-target').value)||0, note:document.getElementById('bm-note').value.trim(), rows:[] };
-  closeModal('bucketModal'); renderBudgetTable(); renderBuckets(); markUnsaved(); schedSave(); toast(`"${name}" 버킷이 추가되었습니다.`);
+  const newBucket={ id:bid, name, theme:document.getElementById('bm-theme').value, target:parseInt(document.getElementById('bm-target').value)||0, note:document.getElementById('bm-note').value.trim(), rows:[] };
+  g.buckets[bid]=newBucket;
+  closeModal('bucketModal'); renderBudgetTable(); renderBuckets(); markUnsaved();
+  // 신규 버킷은 전체를 한 번에 저장 (rows:[] 포함)
+  if(window.__saveSection) window.__saveSection(`guides/${currentGuideId}/buckets/${bid}`, newBucket);
+  else manualSave();
+  toast(`"${name}" 버킷이 추가되었습니다.`);
 }
-function updateBucketField(bid,field,val){ const g=G(); if(!g.buckets[bid])return; if(field==='target')g.buckets[bid][field]=parseInt(val)||0; else g.buckets[bid][field]=val; renderBudgetTable(); if(field==='name')renderBuckets(); markUnsaved(); schedSave(); }
-function removeBucket(bid){ if(!confirm('이 버킷을 삭제하시겠습니까? 채널도 모두 삭제됩니다.'))return; const g=G(); delete g.buckets[bid]; renderBudgetTable(); renderBuckets(); markUnsaved(); schedSave(); }
+function updateBucketField(bid,field,val){
+  const g=G(); if(!g.buckets[bid])return;
+  if(field==='target') g.buckets[bid][field]=parseInt(val)||0;
+  else g.buckets[bid][field]=val;
+  renderBudgetTable(); if(field==='name')renderBuckets(); markUnsaved();
+  // ★ 필드 단위 저장 — 버킷 전체 저장 시 rows가 날아가는 것을 방지
+  if(window.__saveField) window.__saveField(`guides/${currentGuideId}/buckets/${bid}/${field}`, g.buckets[bid][field]);
+  else manualSave();
+}
+function removeBucket(bid){
+  if(!confirm('이 버킷을 삭제하시겠습니까? 채널도 모두 삭제됩니다.'))return;
+  const g=G(); delete g.buckets[bid];
+  renderBudgetTable(); renderBuckets(); markUnsaved();
+  // 버킷 삭제 — null로 set하면 Firebase에서 해당 키 삭제됨
+  if(window.__saveField) window.__saveField(`guides/${currentGuideId}/buckets/${bid}`, null);
+  else manualSave();
+}
 
 // ── CHANNEL CRUD ──────────────────────────────────
 let currentBucketId=null;
