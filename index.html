@@ -1398,14 +1398,47 @@ function migrateOldData(old) {
 function normalizeFirebaseArrays(obj) {
   if(!obj || typeof obj !== 'object') return obj;
 
-  // 숫자 키만 있는 객체 → 배열로 변환
+  // rows 전용 정규화 — 숫자키/랜덤ID키 혼재 포함 모두 처리
+  function normalizeRows(val) {
+    if(!val || typeof val !== 'object') return [];
+    if(Array.isArray(val)) return val;
+
+    const keys = Object.keys(val);
+    if(keys.length === 0) return [];
+
+    // 값들이 {id, ch, budget, ...} 형태인지 확인 → rows 아이템 구조
+    const isRowItems = keys.some(k => {
+      const item = val[k];
+      return item && typeof item === 'object' && (item.ch !== undefined || item.id !== undefined);
+    });
+
+    if(!isRowItems) return val; // rows 아이템이 아니면 그대로
+
+    // 숫자 키는 인덱스 순서대로, 랜덤 ID 키는 뒤에 추가
+    const numericKeys = keys.filter(k => /^\d+$/.test(k)).sort((a,b) => Number(a)-Number(b));
+    const stringKeys  = keys.filter(k => !/^\d+$/.test(k));
+
+    const arr = [];
+    numericKeys.forEach(k => { if(val[k]) arr.push(val[k]); });
+    stringKeys.forEach(k  => { if(val[k]) arr.push(val[k]); });
+
+    // 중복 id 제거 (숫자키와 랜덤ID키가 같은 채널을 중복 저장했을 수 있음)
+    const seen = new Set();
+    return arr.filter(r => {
+      if(!r.id) return true;
+      if(seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
+  }
+
+  // 일반 배열 정규화 (overview, cct, guide용) — 숫자 키만 있는 경우
   function toArrayIfNeeded(val) {
     if(!val || typeof val !== 'object' || Array.isArray(val)) return val;
     const keys = Object.keys(val);
     if(keys.length === 0) return val;
     const isNumericKeys = keys.every(k => /^\d+$/.test(k));
     if(isNumericKeys) {
-      // 인덱스 순서대로 배열 복원
       const maxIdx = Math.max(...keys.map(Number));
       const arr = [];
       for(let i = 0; i <= maxIdx; i++) {
@@ -1425,20 +1458,16 @@ function normalizeFirebaseArrays(obj) {
       ['overview','cct','guide'].forEach(k => {
         if(g[k]) g[k] = toArrayIfNeeded(g[k]);
       });
-      // buckets 하위 rows 정규화
+      // buckets 하위 rows 정규화 — 혼재 케이스 포함
       if(g.buckets) {
         Object.keys(g.buckets).forEach(bid => {
           const b = g.buckets[bid];
           if(!b) return;
-          if(b.rows) {
-            b.rows = toArrayIfNeeded(b.rows);
-            // rows 안의 ag도 객체면 그대로 (ag는 원래 객체)
-            if(Array.isArray(b.rows)) {
-              b.rows.forEach(r => {
-                if(!r.ag) r.ag = {sec:'',confirmed:'',amt:'',cmt:''};
-              });
-            }
-          }
+          // rows는 항상 normalizeRows로 처리 (숫자+랜덤ID 혼재 대응)
+          b.rows = normalizeRows(b.rows || []);
+          b.rows.forEach(r => {
+            if(!r.ag) r.ag = {sec:'',confirmed:'',amt:'',cmt:''};
+          });
         });
       }
     });
@@ -1451,13 +1480,28 @@ window.__onLoaded = function() {
   window.__firebaseLoaded = true;
   let store = window.STORE;
 
-  // ★ 핵심: Firebase 로드 후 반드시 배열 정규화
+  // ★ Firebase 로드 후 반드시 배열 정규화
   store = normalizeFirebaseArrays(store);
   window.STORE = store;
 
   if(store && store.guides) {
     renderHomeList();
     if(currentGuideId) renderGuide(currentGuideId);
+
+    // ★ 오염된 rows(숫자키+랜덤ID 혼재) 자동 정리 — Firebase에 배열로 재저장
+    // saveField로 rows 전체를 덮어써서 깨끗한 배열로 교체
+    if(window.__saveSection) {
+      Object.keys(store.guides).forEach(gid => {
+        const g = store.guides[gid];
+        if(!g || !g.buckets) return;
+        Object.keys(g.buckets).forEach(bid => {
+          const b = g.buckets[bid];
+          if(!b || !Array.isArray(b.rows)) return;
+          // rows가 배열이면 Firebase에 재저장하여 오염된 구조 교체
+          window.__saveSection(`guides/${gid}/buckets/${bid}/rows`, b.rows);
+        });
+      });
+    }
   } else if(store && (store._buckets || store.existing || store.expand || store.terre)) {
     const migrated = migrateOldData(store);
     window.STORE = { guides: { [migrated.id]: migrated } };
