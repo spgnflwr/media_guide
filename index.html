@@ -169,11 +169,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .col-sec{width:75px;}
 .col-wish{width:75px;text-align:right;}
 .col-roi{width:65px;text-align:right;}
-.col-req{min-width:180px;}
+.col-req{min-width:180px;max-width:220px;overflow:hidden;}
 .col-conf{width:85px;}
 .col-amt{width:120px;}
 .col-unit{width:110px;}
-.col-cmt{min-width:150px;}
+.col-cmt{min-width:220px;}
 .col-del{width:44px;text-align:center;}
 
 /* grand bar */
@@ -241,7 +241,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <input class="editable-sub" id="guide-sub-input" value="" oninput="updateGuideMeta('subtitle',this.value)" />
     </div>
     <button class="btn btn-ghost btn-sm" onclick="deleteCurrentGuide()">🗑 삭제</button>
-    <button class="btn btn-primary" onclick="manualSave()">💾 저장</button>
+    <button class="btn btn-primary" onclick="mergeAndSave()">💾 저장</button>
   </div>
 
   <!-- ① 캠페인 개요 -->
@@ -426,6 +426,42 @@ try {
       .catch(()=>{ setSaved('저장 실패'); window.__saving=false; });
   };
 
+  // 최신 데이터 다시 불러오기
+  window.__reloadDB = () => {
+    onValue(ref(db,'guides'), snap => {
+      const v = snap.val();
+      if(v && v.guides) {
+        window.STORE = v;
+        if(window.__onLoaded) window.__onLoaded();
+        if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
+        setSaved('Firebase 연결됨');
+      }
+    }, {onlyOnce:true});
+  };
+
+  // Firebase 최신 읽어서 병합 후 저장
+  // 전략: Firebase 최신을 base로, 현재 STORE의 변경사항을 그 위에 덮어씀
+  window.__mergeAndSaveDB = (currentStore) => {
+    onValue(ref(db,'guides'), snap => {
+      const latest = snap.val();
+      let merged;
+      if(latest && latest.guides) {
+        // 깊은 병합: Firebase 최신 base + 현재 가이드 구조 덮어쓰기
+        merged = JSON.parse(JSON.stringify(latest));
+        // 현재 화면의 가이드 데이터로 덮어씀
+        Object.keys(currentStore.guides||{}).forEach(gid => {
+          merged.guides[gid] = currentStore.guides[gid];
+        });
+      } else {
+        merged = currentStore;
+      }
+      window.STORE = merged;
+      set(ref(db,'guides'), merged)
+        .then(()=>{ setSaved('저장됨'); if(window.toast) window.toast('저장되었습니다.'); })
+        .catch(()=>setSaved('저장 실패'));
+    }, {onlyOnce:true});
+  };
+
   // 필드 단위 저장 — 동시 편집 충돌 방지
   // path 예: 'guides/wfp_july2026/buckets/existing/rows/e1/ag/confirmed'
   window.__saveField = (path, value) => {
@@ -509,6 +545,26 @@ function schedSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(manualSave,2
 function manualSave(){
   if(window.__saveDB) window.__saveDB(window.STORE);
   else { localStorage.setItem('guides_local',JSON.stringify(window.STORE)); setSaved('로컬 저장됨'); }
+}
+
+// Firebase에서 최신 데이터 다시 불러오기
+function reloadFromFirebase(){
+  if(!window.__reloadDB){ alert('Firebase 미연결 상태입니다.'); return; }
+  if(!confirm('Firebase에서 최신 데이터를 불러옵니다.\n입력 중인 내용이 있다면 먼저 저장하세요.\n계속하시겠습니까?')) return;
+  setSaving();
+  window.__reloadDB();
+}
+
+// Firebase 최신 데이터와 병합 후 저장
+function mergeAndSave() {
+  setSaving();
+  if(!window.__reloadDB) {
+    // Firebase 미연결 — 로컬 저장만
+    manualSave();
+    return;
+  }
+  // Firebase 최신 읽어온 후 현재 변경사항 병합 저장
+  window.__mergeAndSaveDB(window.STORE);
 }
 function setSaved(msg){
   const d=document.getElementById('sDot'); const t=document.getElementById('sTxt'); const st=document.getElementById('sTime');
@@ -843,7 +899,24 @@ function openCmtById(field, cid, bid) {
   openCmtModal(bid, cid, field, val, title);
 }
 
-// ── 코멘트 확장 모달 ──────────────────────────────
+// 줄 단위 분리, 각 줄 15자 초과 시 ..., 최대 2줄 표시
+function truncate2Lines(text) {
+  if(!text) return '';
+  const LIMIT = 25;
+  const lines = text.split('\n').filter(l => l.trim() !== '');
+  const result = lines.slice(0, 2).map(line => {
+    line = line.trim();
+    return line.length > LIMIT ? line.slice(0, LIMIT) + '...' : line;
+  });
+  return result.join('\n');
+}
+// truncate2Lines 결과를 HTML safe하게 변환 (줄바꿈은 보존)
+function truncateHtml(text) {
+  return truncate2Lines(text)
+    .split('\n')
+    .map(l => esc(l))
+    .join('<br>');
+}
 let _cmtBid='', _cmtCid='', _cmtField='';
 function openCmtModal(bid, cid, field, currentVal, title) {
   _cmtBid=bid; _cmtCid=cid; _cmtField=field;
@@ -860,12 +933,11 @@ function saveCmtModal() {
   if(_cmtField === 'req') {
     updateCh(_cmtBid, _cmtCid, 'req', val);
     const el = document.getElementById(`req-display-${_cmtCid}`);
-    if(el) { el.textContent = val; }
+    if(el) el.innerHTML = truncateHtml(val);
   } else if(_cmtField === 'cmt') {
     updateAg(_cmtBid, _cmtCid, 'cmt', val);
     const el = document.getElementById(`cmt-display-${_cmtCid}`);
-    if(el) { el.textContent = val; }
-    // + 입력 / ✏ 수정 텍스트 업데이트
+    if(el) el.innerHTML = truncateHtml(val);
     const hint = el?.nextElementSibling;
     if(hint) hint.textContent = val ? '✏ 수정' : '+ 입력';
   }
@@ -1020,7 +1092,7 @@ function renderBuckets(){
             <th class="ag" style="width:80px;">확정 초수</th>
             <th class="ag r" style="width:75px;">확정 횟수</th>
             <th class="ag r" style="width:110px;">스팟단가</th>
-            <th class="ag" style="min-width:140px;">코멘트</th>
+            <th class="ag" style="min-width:220px;">코멘트</th>
             <th class="col-del">관리</th>
           </tr></thead>
           <tbody>
@@ -1054,9 +1126,9 @@ function renderBuckets(){
                   <input class="ec ${roiCls(r.roi)}" style="text-align:right;width:45px;" value="${r.roi!=null?r.roi:''}" placeholder="-"
                     oninput="updateCh('${bid}','${r.id}','roi',this.value)">
                 </td>
-                <td class="col-req" style="cursor:pointer;vertical-align:middle;"
+                <td class="col-req" style="cursor:pointer;vertical-align:middle;width:220px;max-width:220px;"
                   onclick="openCmtById('req','${r.id}','${bid}')">
-                  <span id="req-display-${r.id}" style="font-size:12px;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;">${esc(r.req||'')}</span>
+                  <span id="req-display-${r.id}" style="font-size:12px;color:var(--text-2);line-height:1.5;display:block;">${truncateHtml(r.req||'')}</span>
                   <span style="font-size:10px;color:var(--text-3);">✏ 클릭하여 수정</span>
                 </td>
                 <td class="ag">
@@ -1078,9 +1150,9 @@ function renderBuckets(){
                 <td class="ag r" id="unit-${r.id}">
                   ${unit?`<span style="font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums;">${fmt(unit)}</span>`:`<span style="color:var(--text-3);">-</span>`}
                 </td>
-                <td class="ag" style="cursor:pointer;vertical-align:middle;"
+                <td class="ag" style="cursor:pointer;vertical-align:middle;width:180px;max-width:180px;"
                   onclick="openCmtById('cmt','${r.id}','${bid}')">
-                  <span id="cmt-display-${r.id}" style="font-size:12px;color:var(--text-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.5;">${esc(r.ag?.cmt||'')}</span>
+                  <span id="cmt-display-${r.id}" style="font-size:12px;color:var(--text-2);line-height:1.5;display:block;">${truncateHtml(r.ag?.cmt||'')}</span>
                   <span style="font-size:10px;color:var(--text-3);">${r.ag?.cmt?'✏ 수정':'+ 입력'}</span>
                 </td>
                 <td class="col-del" style="text-align:center;">
