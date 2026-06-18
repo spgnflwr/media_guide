@@ -211,6 +211,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .roi-h{color:#0F6E56;font-weight:700;} .roi-m{color:var(--blue-600);} .roi-l{color:var(--text-3);}
 .muted{color:var(--text-3);text-decoration:line-through;}
 .fw7{font-weight:700;font-variant-numeric:tabular-nums;}
+
+/* ══ HOME TABS ══ */
+.home-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:24px;}
+.home-tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;border:none;background:transparent;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.home-tab:hover{color:var(--text);}
+.home-tab.active{color:var(--blue-600);border-bottom-color:var(--blue-600);}
+
+/* ══ MEDIA PLAN ══ */
+.mp-list-wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.mp-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px;cursor:pointer;transition:box-shadow .15s;}
+.mp-card:hover{box-shadow:0 2px 16px rgba(0,0,0,.1);}
+.mp-tag{font-size:10px;font-weight:700;color:#4A2C8F;background:#F3EEFF;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:8px;}
+.mp-ver{font-size:10px;color:var(--text-3);background:var(--gray-100);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:8px;margin-left:4px;}
+
+/* ══ MEDIA PLAN PAGE ══ */
+.mp-page{max-width:1600px;margin:0 auto;padding:28px 36px 100px;}
+.mp-topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.mp-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.mp-info-item{display:flex;align-items:center;gap:8px;font-size:12px;}
+.mp-info-label{color:var(--text-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
+
+/* ══ MEDIA PLAN TABLE ══ */
+.mp-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;}
+.mp-table{width:100%;border-collapse:collapse;min-width:1100px;}
+.mp-table th{padding:8px 12px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;text-align:left;}
+.mp-table th.r{text-align:right;}
+.mp-table th:last-child{border-right:none;}
+.mp-table td{padding:9px 12px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;font-size:13px;}
+.mp-table td.r{text-align:right;font-variant-numeric:tabular-nums;}
+.mp-table td:last-child{border-right:none;}
+.mp-table tr:last-child td{border-bottom:none;}
+.mp-total td{background:var(--gray-50);font-weight:700;border-top:2px solid var(--border);}
+.mp-creative-total td{background:#F3EEFF;font-weight:700;border-top:1px solid #C9B8F5;}
+.mp-table .ec{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;width:100%;}
+.mp-table .ec:focus{background:#FFFDE6;border-radius:4px;padding:2px 5px;margin:-2px -5px;width:calc(100% + 10px);}
+
 </style>
 </head>
 <body>
@@ -230,11 +266,136 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           placeholder="이름 입력" value=""
           onchange="updateMyName(this.value)" />
       </div>
-      <button class="btn btn-primary" onclick="openNewGuideModal()">+ 새 청약가이드 생성</button>
+      <div id="home-tab-action"></div>
     </div>
   </div>
-  <div id="guide-list-wrap"></div>
+
+  <!-- 탭 -->
+  <div class="home-tabs">
+    <button class="home-tab active" id="tab-guide" onclick="switchHomeTab('guide')">📋 청약가이드</button>
+    <button class="home-tab" id="tab-mp" onclick="switchHomeTab('mp')">📊 확정 미디어플랜</button>
+  </div>
+
+  <!-- 청약가이드 목록 -->
+  <div id="home-guide-section">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="btn btn-primary" onclick="openNewGuideModal()">+ 새 청약가이드 생성</button>
+    </div>
+    <div id="guide-list-wrap"></div>
+  </div>
+
+  <!-- 미디어플랜 목록 -->
+  <div id="home-mp-section" style="display:none;">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <button class="btn btn-primary" onclick="openNewMpModal()">+ 새 미디어플랜 생성</button>
+    </div>
+    <div id="mp-list-wrap"></div>
+  </div>
 </div>
+</div>
+
+<!-- ══════════ MEDIA PLAN SCREEN ══════════ -->
+<div id="screen-mp" class="screen">
+<div class="mp-page">
+
+  <!-- topbar -->
+  <div class="mp-topbar">
+    <button class="topbar-back" onclick="goHome()">← 목록</button>
+    <div class="topbar-title-wrap">
+      <input class="editable-title" id="mp-title-input" value="" oninput="updateMpMeta('title',this.value)" />
+      <input class="editable-sub" id="mp-sub-input" value="" oninput="updateMpMeta('subtitle',this.value)" />
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="deleteCurrentMp()">🗑 삭제</button>
+  </div>
+
+  <!-- 기본 정보 바 -->
+  <div class="mp-info-bar">
+    <div class="mp-info-item">
+      <span class="mp-info-label">광고주</span>
+      <input class="ec" id="mp-client-input" style="font-size:13px;font-weight:600;width:120px;" value="" oninput="updateMpMeta('client',this.value)" placeholder="광고주명">
+    </div>
+    <div class="mp-info-item">
+      <span class="mp-info-label">버전</span>
+      <input class="ec" id="mp-version-input" style="font-size:13px;font-weight:600;width:60px;" value="" oninput="updateMpMeta('version',this.value)" placeholder="v1">
+    </div>
+    <div class="mp-info-item">
+      <span class="mp-info-label">수정일</span>
+      <input class="ec" id="mp-date-input" style="font-size:13px;width:110px;" value="" oninput="updateMpMeta('updatedAt',this.value)" placeholder="2026-07-01">
+    </div>
+    <div style="margin-left:auto;">
+      <button class="btn btn-primary btn-sm" onclick="saveMpMeta()">💾 저장</button>
+    </div>
+  </div>
+
+  <!-- 미디어플랜 테이블 -->
+  <div class="mp-table-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);">
+      <span class="sec-label">미디어플랜</span>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-ghost btn-sm" onclick="addMpRow()">+ 행 추가</button>
+        <button class="btn btn-primary btn-sm" onclick="saveMpRows()">💾 저장</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mp-table" id="mp-table">
+        <thead>
+          <tr>
+            <th style="width:32px;text-align:center;">#</th>
+            <th style="width:110px;">Creative</th>
+            <th style="width:70px;">Duration</th>
+            <th style="width:90px;">CTA</th>
+            <th style="width:90px;">Ask</th>
+            <th style="width:90px;">Genre</th>
+            <th style="width:130px;">Channel</th>
+            <th class="r" style="width:130px;">Media Cost</th>
+            <th class="r" style="width:110px;">Spot Cost</th>
+            <th class="r" style="width:80px;">Spot</th>
+            <th style="width:36px;"></th>
+          </tr>
+        </thead>
+        <tbody id="mp-tbody"></tbody>
+        <tfoot id="mp-tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- Modal: 새 미디어플랜 -->
+<div class="modal-bg" id="newMpModal">
+  <div class="modal">
+    <div class="modal-title">새 미디어플랜 생성</div>
+    <div class="mf"><div class="ml">제목 *</div><input class="mi" id="nm-title" placeholder="예: 그린피스 2026년 7월 미디어플랜"></div>
+    <div class="mrow">
+      <div class="mf"><div class="ml">광고주</div><input class="mi" id="nm-client" placeholder="예: 그린피스"></div>
+      <div class="mf"><div class="ml">버전</div><input class="mi" id="nm-version" placeholder="v1"></div>
+    </div>
+    <div class="mf"><div class="ml">부제</div><input class="mi" id="nm-sub" placeholder="예: 2026년 7월 · 확정안"></div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('newMpModal')">취소</button>
+      <button class="btn btn-primary" onclick="createMp()">생성</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 청약가이드에서 가져오기 -->
+<div class="modal-bg" id="importFromGuideModal">
+  <div class="modal" style="width:600px;">
+    <div class="modal-title">청약가이드에서 가져오기</div>
+    <div class="mf">
+      <div class="ml">청약가이드 선택</div>
+      <select class="mi" id="import-guide-select"></select>
+    </div>
+    <div style="font-size:12px;color:var(--text-2);margin-top:8px;padding:10px;background:var(--gray-50);border-radius:var(--r);">
+      확정금액·확정초수·확정횟수가 입력된 채널만 가져옵니다.<br>
+      Creative·CTA·Ask·Genre는 빈 칸으로 추가되며 이후 직접 입력하세요.
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('importFromGuideModal')">취소</button>
+      <button class="btn btn-primary" onclick="doImportFromGuide()">가져오기</button>
+    </div>
+  </div>
 </div>
 
 <!-- ══════════ GUIDE SCREEN ══════════ -->
@@ -251,6 +412,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <!-- 접속자 표시 -->
     <div id="presence-bar" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"></div>
     <button class="btn btn-ghost btn-sm" onclick="deleteCurrentGuide()">🗑 삭제</button>
+    <button class="btn btn-ghost btn-sm" style="color:#4A2C8F;border-color:#C9B8F5;" onclick="openImportFromGuideModal(currentGuideId)">📊 미디어플랜으로</button>
     <button class="btn btn-ghost" onclick="reloadFromFirebase()">🔄 새로고침</button>
   </div>
 
@@ -433,11 +595,12 @@ const firebaseConfig = {
 };
 
 // ══════════════════════════════════════════════════
-// Firebase 경로 규칙 (절대 변경 금지)
-// 데이터 루트: guides/guides/{guideId}/...
-// Presence:   presence/{sessionId}
+// Firebase 경로 규칙
+// guides/{guideId}/...   — 청약가이드
+// mps/{mpId}/...         — 확정 미디어플랜
+// Presence: presence/{sessionId}
 // ══════════════════════════════════════════════════
-const DB_ROOT = 'guides'; // 실제 데이터 경로
+const DB_ROOT = 'guides'; // 청약가이드 경로 (하위 호환 유지)
 
 try {
   const app = initializeApp(firebaseConfig);
@@ -463,7 +626,7 @@ try {
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ③ 전체 저장 (가이드 신규 생성)
+  // ③ 전체 저장 (레거시 — 가이드 초기화 시에만 사용)
   window.__saveDB = (data) => {
     const payload = data.guides || data;
     set(ref(db, DB_ROOT), payload)
@@ -471,22 +634,19 @@ try {
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ④ 새로고침
+  // ④ 새로고침 — guides + mps 모두 로드
   window.__reloadDB = () => {
     setSaving();
     onValue(ref(db, DB_ROOT), snap => {
       const v = snap.val();
       if(v) {
-        window.STORE = { guides: v };
-        // ★ Firebase 배열 정규화 (숫자키 객체 → 배열 복원)
+        window.STORE.guides = v;
         if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
-        window.__firebaseLoaded = true;
-        window.__onLoaded && window.__onLoaded();
-        setSaved('새로고침 완료');
-        window.toast && window.toast('최신 데이터를 불러왔습니다.');
-      } else {
-        setSaved('데이터 없음');
       }
+      window.__firebaseLoaded = true;
+      window.__onLoaded && window.__onLoaded();
+      setSaved('새로고침 완료');
+      window.toast && window.toast('최신 데이터를 불러왔습니다.');
     }, {onlyOnce:true});
   };
 
@@ -505,22 +665,27 @@ try {
     renderPresence(snap.val() || {});
   });
 
-  // ⑥ 초기 로드 (1회)
+  // ⑥ 초기 로드 — guides 로드
   onValue(ref(db, DB_ROOT), snap => {
     const v = snap.val();
     if(v) {
-      window.STORE = { guides: v };
-      // ★ Firebase 배열 정규화 — module script보다 일반 script가 늦게 실행될 수 있어 setTimeout(0) 보장
+      window.STORE.guides = v;
+    }
+    // ⑦ mps도 함께 로드
+    onValue(ref(db, 'mps'), snapMp => {
+      const mp = snapMp.val();
+      window.STORE.mps = mp || {};
       setTimeout(() => {
         if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
         window.__firebaseLoaded = true;
-        window.__onLoaded && window.__onLoaded();
+        if(v) {
+          window.__onLoaded && window.__onLoaded();
+        } else {
+          window.__initStore && window.__initStore();
+        }
         setSaved('Firebase 연결됨');
       }, 0);
-    } else {
-      window.__initStore && window.__initStore();
-      setSaved('Firebase 연결됨');
-    }
+    }, {onlyOnce: true});
   }, {onlyOnce: true});
 
 } catch(e) { setSaved('오프라인 모드'); }
@@ -531,7 +696,7 @@ try {
 // STORE  — { guides: { [id]: GuideDoc } }
 // GuideDoc = { id, title, subtitle, meta, overview[], cct[], guide[], buckets:{[bid]:{...}} }
 // ══════════════════════════════════════════════════
-window.STORE = { guides:{} };
+window.STORE = { guides:{}, mps:{} };
 let currentGuideId = null;
 let saveTimer = null;
 
@@ -664,7 +829,7 @@ function markUnsaved(){
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+id).classList.add('active');
-  document.getElementById('sbar').style.display = id==='guide'?'flex':'none';
+  document.getElementById('sbar').style.display = (id==='guide'||id==='mp')?'flex':'none';
 }
 
 // ── HOME ──────────────────────────────────────────
@@ -693,7 +858,15 @@ function renderHomeList(){
   }).join('')}</div>`;
 }
 
-function goHome(){ showScreen('home'); renderHomeList(); currentGuideId=null; }
+function goHome(){
+  showScreen('home');
+  renderHomeList();
+  currentGuideId=null;
+  currentMpId=null;
+  // 현재 탭 유지
+  const mpTab = document.getElementById('tab-mp');
+  if(mpTab && mpTab.classList.contains('active')) renderMpList();
+}
 
 // ── CREATE GUIDE ──────────────────────────────────
 function openNewGuideModal(){
@@ -1310,6 +1483,274 @@ function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg
 window.fmtN=fmtN; window.unF=unF;
 // module script에서도 접근 가능하도록 명시적 노출
 window.normalizeFirebaseArrays = normalizeFirebaseArrays;
+
+// ══════════════════════════════════════════════════
+// MEDIA PLAN
+// MpDoc = { id, title, subtitle, client, version, updatedAt, rows:[] }
+// MpRow = { id, creative, duration, cta, ask, genre, channel, mediaCost, spot }
+// ══════════════════════════════════════════════════
+
+let currentMpId = null;
+
+// ── 홈 탭 전환 ────────────────────────────────────
+function switchHomeTab(tab) {
+  document.getElementById('tab-guide').classList.toggle('active', tab==='guide');
+  document.getElementById('tab-mp').classList.toggle('active', tab==='mp');
+  document.getElementById('home-guide-section').style.display = tab==='guide' ? '' : 'none';
+  document.getElementById('home-mp-section').style.display   = tab==='mp'    ? '' : 'none';
+  if(tab==='mp') renderMpList();
+}
+
+// ── MP 목록 렌더링 ─────────────────────────────────
+function renderMpList() {
+  const wrap = document.getElementById('mp-list-wrap'); if(!wrap) return;
+  const mps = Object.values(window.STORE.mps||{}).sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(!mps.length) {
+    wrap.innerHTML=`<div class="empty-state"><div class="empty-state-icon">📊</div><div class="empty-state-title">아직 미디어플랜이 없습니다</div><div>청약가이드에서 "미디어플랜으로" 버튼을 눌러 생성하거나, 직접 생성하세요.</div></div>`;
+    return;
+  }
+  wrap.innerHTML=`<div class="mp-list-wrap">${mps.map(mp=>{
+    const rowCount = (mp.rows||[]).length;
+    const totalCost = (mp.rows||[]).reduce((s,r)=>s+(r.mediaCost||0),0);
+    return `<div class="mp-card" onclick="openMp('${mp.id}')">
+      <div>
+        <span class="mp-tag">${esc(mp.client||'')}</span>
+        <span class="mp-ver">${esc(mp.version||'v1')}</span>
+      </div>
+      <div class="gc-title">${esc(mp.title||'제목 없음')}</div>
+      <div class="gc-sub">${esc(mp.subtitle||'')}</div>
+      <div class="gc-meta">
+        <div class="gc-stat">${rowCount}개 채널 · ${fmt(totalCost)}<br><span style="font-size:10px;color:var(--text-3);">수정일: ${esc(mp.updatedAt||'-')}</span></div>
+        <div class="gc-actions">
+          <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMp('${mp.id}')">삭제</button>
+          <button class="btn btn-primary btn-xs">열기</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── MP CRUD ───────────────────────────────────────
+function openNewMpModal() {
+  ['nm-title','nm-client','nm-version','nm-sub'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('nm-version').value='v1';
+  openModal('newMpModal');
+}
+function createMp(opts) {
+  const title = opts?.title || document.getElementById('nm-title').value.trim();
+  if(!title){ alert('제목을 입력하세요.'); return null; }
+  const id = uid();
+  const mp = {
+    id, title,
+    subtitle: opts?.subtitle || document.getElementById('nm-sub').value.trim(),
+    client:   opts?.client   || document.getElementById('nm-client').value.trim(),
+    version:  opts?.version  || document.getElementById('nm-version').value.trim() || 'v1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toLocaleDateString('ko-KR'),
+    rows: opts?.rows || []
+  };
+  if(!window.STORE.mps) window.STORE.mps = {};
+  window.STORE.mps[id] = mp;
+  if(!opts) closeModal('newMpModal');
+  saveMp(id);
+  return id;
+}
+function deleteMp(id) {
+  if(!confirm('이 미디어플랜을 삭제하시겠습니까?')) return;
+  delete window.STORE.mps[id];
+  if(window.__saveField) window.__saveField(`mps/${id}`, null);
+  else manualSave();
+  renderMpList();
+  toast('삭제되었습니다.');
+}
+function deleteCurrentMp() { if(currentMpId){ deleteMp(currentMpId); goHome(); } }
+
+function saveMp(id) {
+  const mp = (window.STORE.mps||{})[id]; if(!mp) return;
+  if(window.__saveSection) window.__saveSection(`mps/${id}`, mp);
+  else manualSave();
+}
+
+// ── MP 열기/렌더링 ─────────────────────────────────
+function openMp(id) {
+  currentMpId = id;
+  showScreen('mp');
+  renderMp(id);
+}
+function renderMp(id) {
+  const mp = (window.STORE.mps||{})[id]; if(!mp) return;
+  document.getElementById('mp-title-input').value   = mp.title||'';
+  document.getElementById('mp-sub-input').value     = mp.subtitle||'';
+  document.getElementById('mp-client-input').value  = mp.client||'';
+  document.getElementById('mp-version-input').value = mp.version||'v1';
+  document.getElementById('mp-date-input').value    = mp.updatedAt||'';
+  renderMpTable(id);
+}
+function updateMpMeta(field, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  mp[field] = val;
+}
+function saveMpMeta() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  mp.updatedAt = document.getElementById('mp-date-input').value || new Date().toLocaleDateString('ko-KR');
+  saveMp(currentMpId);
+  toast('저장되었습니다.');
+}
+
+// ── MP 테이블 렌더링 ──────────────────────────────
+function renderMpTable(id) {
+  const mp = (window.STORE.mps||{})[id||currentMpId]; if(!mp) return;
+  const rows = mp.rows||[];
+  const tbody = document.getElementById('mp-tbody');
+  const tfoot = document.getElementById('mp-tfoot');
+  if(!tbody) return;
+
+  tbody.innerHTML = rows.map((r,i) => {
+    const spotCost = (r.mediaCost && r.spot && r.spot>0) ? Math.round(r.mediaCost/r.spot) : null;
+    return `<tr id="mprow-${r.id}">
+      <td style="text-align:center;color:var(--text-3);">${i+1}</td>
+      <td><input class="ec" value="${esc(r.creative||'')}" placeholder="-" oninput="updateMpRow('${r.id}','creative',this.value)"></td>
+      <td><input class="ec" value="${esc(r.duration||'')}" placeholder="-" oninput="updateMpRow('${r.id}','duration',this.value)"></td>
+      <td><input class="ec" value="${esc(r.cta||'')}" placeholder="-" oninput="updateMpRow('${r.id}','cta',this.value)"></td>
+      <td><input class="ec" value="${esc(r.ask||'')}" placeholder="-" oninput="updateMpRow('${r.id}','ask',this.value)"></td>
+      <td><input class="ec" value="${esc(r.genre||'')}" placeholder="-" oninput="updateMpRow('${r.id}','genre',this.value)"></td>
+      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="-" oninput="updateMpRow('${r.id}','channel',this.value)"></td>
+      <td class="r">
+        <input class="ec" style="text-align:right;"
+          value="${fmtN(r.mediaCost)}"
+          onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
+          onblur="this.value=fmtN(this.value)||''"
+          oninput="updateMpRow('${r.id}','mediaCost',unF(this.value))">
+      </td>
+      <td class="r" id="mpspc-${r.id}" style="color:var(--text-3);font-size:12px;">${spotCost?fmt(spotCost):'-'}</td>
+      <td class="r">
+        <input class="ec" style="text-align:right;width:50px;" value="${r.spot||''}" placeholder="-"
+          oninput="updateMpRow('${r.id}','spot',parseInt(this.value)||0)">
+      </td>
+      <td style="text-align:center;"><button class="btn-icon" onclick="removeMpRow('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+
+  // 합계 행
+  renderMpTotals(mp);
+}
+
+function renderMpTotals(mp) {
+  const tfoot = document.getElementById('mp-tfoot'); if(!tfoot) return;
+  const rows = (mp||{}).rows||[];
+  const totalCost  = rows.reduce((s,r)=>s+(r.mediaCost||0),0);
+  const totalSpot  = rows.reduce((s,r)=>s+(r.spot||0),0);
+  const totalSpc   = (totalCost&&totalSpot>0) ? Math.round(totalCost/totalSpot) : null;
+
+  // 크리에티브별 합산
+  const creativeMap = {};
+  rows.forEach(r => {
+    const key = r.creative||'(미입력)';
+    if(!creativeMap[key]) creativeMap[key]={cost:0,spot:0};
+    creativeMap[key].cost += r.mediaCost||0;
+    creativeMap[key].spot += r.spot||0;
+  });
+  const creativeRows = Object.entries(creativeMap).map(([name,v])=>{
+    const spc = (v.cost&&v.spot>0)?Math.round(v.cost/v.spot):null;
+    return `<tr class="mp-creative-total">
+      <td colspan="6" style="font-size:11px;color:#4A2C8F;font-weight:700;">▸ ${esc(name)}</td>
+      <td class="r" style="color:#4A2C8F;">${fmt(v.cost)}</td>
+      <td class="r" style="color:#4A2C8F;font-size:11px;">${spc?fmt(spc):'-'}</td>
+      <td class="r" style="color:#4A2C8F;">${v.spot||'-'}</td>
+      <td></td>
+    </tr>`;
+  }).join('');
+
+  tfoot.innerHTML = `
+    ${creativeRows}
+    <tr class="mp-total">
+      <td colspan="6">Total</td>
+      <td class="r">${fmt(totalCost)}</td>
+      <td class="r" style="font-size:12px;">${totalSpc?fmt(totalSpc):'-'}</td>
+      <td class="r">${totalSpot||'-'}</td>
+      <td></td>
+    </tr>`;
+}
+
+// ── MP Row CRUD ───────────────────────────────────
+function addMpRow() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  if(!mp.rows) mp.rows=[];
+  mp.rows.push({id:uid(),creative:'',duration:'',cta:'',ask:'',genre:'',channel:'',mediaCost:0,spot:0});
+  renderMpTable(currentMpId);
+}
+function removeMpRow(rid) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  mp.rows = (mp.rows||[]).filter(r=>r.id!==rid);
+  renderMpTable(currentMpId);
+}
+function updateMpRow(rid, field, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const r = (mp.rows||[]).find(x=>x.id===rid); if(!r) return;
+  r[field] = val;
+  // Spot Cost 실시간 갱신
+  if(field==='mediaCost'||field==='spot') {
+    const spc = (r.mediaCost&&r.spot>0)?Math.round(r.mediaCost/r.spot):null;
+    const el = document.getElementById(`mpspc-${rid}`);
+    if(el) el.innerHTML = spc?fmt(spc):'-';
+    renderMpTotals(mp);
+  }
+}
+function saveMpRows() {
+  saveMp(currentMpId);
+  toast('저장되었습니다.');
+}
+
+// ── 청약가이드 → 미디어플랜 가져오기 ──────────────
+function openImportFromGuideModal(gid) {
+  const sel = document.getElementById('import-guide-select'); if(!sel) return;
+  const guides = Object.values(window.STORE.guides||{});
+  sel.innerHTML = guides.map(g=>`<option value="${g.id}"${g.id===gid?' selected':''}>${esc(g.title)}</option>`).join('');
+  openModal('importFromGuideModal');
+}
+function doImportFromGuide() {
+  const gid = document.getElementById('import-guide-select').value;
+  const g = (window.STORE.guides||{})[gid]; if(!g) return;
+
+  // 버킷 순서대로 확정 데이터가 있는 채널만 수집
+  const rows = [];
+  Object.values(g.buckets||{}).forEach(b => {
+    (b.rows||[]).forEach(r => {
+      if(r.type==='off') return;
+      const amt  = r.ag?.amt ? (parseInt(String(r.ag.amt).replace(/[^0-9]/g,''))||0) : (r.budget||0);
+      const conf = parseInt(r.ag?.confirmed)||0;
+      const sec  = r.ag?.sec || r.sec || '';
+      rows.push({
+        id: uid(),
+        creative: '',
+        duration: sec,
+        cta: '', ask: '', genre: '',
+        channel: r.ch||'',
+        mediaCost: amt,
+        spot: conf
+      });
+    });
+  });
+
+  closeModal('importFromGuideModal');
+
+  // 새 미디어플랜 생성
+  const mpId = createMp({
+    title:    g.title.replace('청약가이드','미디어플랜').replace('가이드','미디어플랜'),
+    subtitle: g.subtitle||'',
+    client:   g.meta?.client||'',
+    version:  'v1',
+    rows
+  });
+  if(mpId) {
+    toast('미디어플랜으로 가져왔습니다.');
+    openMp(mpId);
+  }
+}
+
+// ── goHome은 위에서 재정의됨
 
 // 접속자 이름 설정
 function updateMyName(name) {
