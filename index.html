@@ -241,7 +241,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <input class="editable-sub" id="guide-sub-input" value="" oninput="updateGuideMeta('subtitle',this.value)" />
     </div>
     <button class="btn btn-ghost btn-sm" onclick="deleteCurrentGuide()">🗑 삭제</button>
-    <button class="btn btn-primary" onclick="mergeAndSave()">💾 저장</button>
+    <button class="btn btn-ghost" onclick="reloadFromFirebase()">🔄 새로고침</button>
   </div>
 
   <!-- ① 캠페인 개요 -->
@@ -250,6 +250,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <span class="sec-label">캠페인 개요</span>
       <div class="sec-actions">
         <button class="btn-icon" onclick="addOvRow()" title="항목 추가">＋</button>
+        <button class="btn btn-primary btn-sm" onclick="saveSection('overview')">💾 저장</button>
       </div>
     </div>
     <div id="ov-wrap"></div>
@@ -262,6 +263,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="sec-actions">
         <span style="font-size:11px;color:var(--text-3);">버킷 채널 합산값 자동 반영</span>
         <button class="btn btn-sm btn-ghost" onclick="openBucketModal()">+ 버킷 추가</button>
+        <button class="btn btn-primary btn-sm" onclick="saveAllBucketMeta()">💾 저장</button>
       </div>
     </div>
     <div id="budget-table-wrap"></div>
@@ -272,14 +274,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="sec">
       <div class="sec-head">
         <span class="sec-label">콜센터 운영 시간대</span>
-        <button class="btn-icon" onclick="addCctRow()">＋</button>
+        <div class="sec-actions">
+          <button class="btn-icon" onclick="addCctRow()">＋</button>
+          <button class="btn btn-primary btn-sm" onclick="saveSection('cct')">💾 저장</button>
+        </div>
       </div>
       <div id="cct-wrap"></div>
     </div>
     <div class="sec">
       <div class="sec-head">
         <span class="sec-label">공통 편성 가이드</span>
-        <button class="btn-icon" onclick="addGuideRow()">＋</button>
+        <div class="sec-actions">
+          <button class="btn-icon" onclick="addGuideRow()">＋</button>
+          <button class="btn btn-primary btn-sm" onclick="saveSection('guide')">💾 저장</button>
+        </div>
       </div>
       <div id="guide-wrap"></div>
     </div>
@@ -419,51 +427,7 @@ try {
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
 
-  window.__saveDB = (data) => {
-    window.__saving = true;
-    set(ref(db,'guides'), data)
-      .then(()=>{ setSaved('저장됨'); setTimeout(()=>{ window.__saving=false; }, 3000); })
-      .catch(()=>{ setSaved('저장 실패'); window.__saving=false; });
-  };
-
-  // 최신 데이터 다시 불러오기
-  window.__reloadDB = () => {
-    onValue(ref(db,'guides'), snap => {
-      const v = snap.val();
-      if(v && v.guides) {
-        window.STORE = v;
-        if(window.__onLoaded) window.__onLoaded();
-        if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
-        setSaved('Firebase 연결됨');
-      }
-    }, {onlyOnce:true});
-  };
-
-  // Firebase 최신 읽어서 병합 후 저장
-  // 전략: Firebase 최신을 base로, 현재 STORE의 변경사항을 그 위에 덮어씀
-  window.__mergeAndSaveDB = (currentStore) => {
-    onValue(ref(db,'guides'), snap => {
-      const latest = snap.val();
-      let merged;
-      if(latest && latest.guides) {
-        // 깊은 병합: Firebase 최신 base + 현재 가이드 구조 덮어쓰기
-        merged = JSON.parse(JSON.stringify(latest));
-        // 현재 화면의 가이드 데이터로 덮어씀
-        Object.keys(currentStore.guides||{}).forEach(gid => {
-          merged.guides[gid] = currentStore.guides[gid];
-        });
-      } else {
-        merged = currentStore;
-      }
-      window.STORE = merged;
-      set(ref(db,'guides'), merged)
-        .then(()=>{ setSaved('저장됨'); if(window.toast) window.toast('저장되었습니다.'); })
-        .catch(()=>setSaved('저장 실패'));
-    }, {onlyOnce:true});
-  };
-
-  // 필드 단위 저장 — 동시 편집 충돌 방지
-  // path 예: 'guides/wfp_july2026/buckets/existing/rows/e1/ag/confirmed'
+  // 필드 단위 저장 (채널 세부표 자동 저장용)
   window.__saveField = (path, value) => {
     const updates = {};
     updates[path] = value;
@@ -472,29 +436,78 @@ try {
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // 초기 1회만 로드 (onlyOnce)
+  // 섹션 단위 저장 (카드별 저장 버튼용)
+  window.__saveSection = (path, value) => {
+    setSaving();
+    const updates = {};
+    updates[path] = value;
+    update(ref(db), updates)
+      .then(()=>{ setSaved('저장됨'); if(window.toast) window.toast('저장되었습니다.'); })
+      .catch(()=>setSaved('저장 실패'));
+  };
+
+  // 전체 저장 (가이드 신규 생성 시)
+  window.__saveDB = (data) => {
+    set(ref(db,'guides'), data)
+      .then(()=>setSaved('저장됨'))
+      .catch(()=>setSaved('저장 실패'));
+  };
+
+  // 🔄 새로고침 — Firebase 최신 강제 로드
+  window.__reloadDB = () => {
+    setSaving();
+    onValue(ref(db,'guides'), snap => {
+      const v = snap.val();
+      if(v && v.guides) {
+        window.STORE = v;
+        window.__firebaseLoaded = true;
+        if(window.__renderAll) window.__renderAll();
+        setSaved('새로고침 완료');
+        if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
+      }
+    }, {onlyOnce:true});
+  };
+
+  // 실시간 동기화 리스너 — 편집 중인 필드는 보호
   onValue(ref(db,'guides'), snap => {
-    if(window.__saving) return; // 저장 중이면 무시
     const v = snap.val();
-    if(v && v.guides) {
+    if(!v) {
+      if(window.__initStore) window.__initStore();
+      setSaved('Firebase 연결됨');
+      return;
+    }
+    // 구 구조 처리
+    if(!v.guides && (v._buckets || v.existing || v.expand || v.terre)) {
       window.STORE = v;
       if(window.__onLoaded) window.__onLoaded();
       setSaved('Firebase 연결됨');
-    } else if(v && (v._buckets || v.existing || v.expand || v.terre)) {
-      // 구 구조 마이그레이션
-      window.STORE = v;
-      if(window.__onLoaded) window.__onLoaded();
-      setSaved('Firebase 연결됨');
-    } else if(!v) {
-      // Firebase 비어있음 → 구 키 확인
+      return;
+    }
+    if(!v.guides) {
       onValue(ref(db,'wfp_july2026'), snap2 => {
         const v2 = snap2.val();
         if(v2) { window.STORE = v2; if(window.__onLoaded) window.__onLoaded(); }
         else   { if(window.__initStore) window.__initStore(); }
         setSaved('Firebase 연결됨');
       }, {onlyOnce:true});
+      return;
     }
-  }, {onlyOnce:true});
+
+    // 첫 로드
+    if(!window.__firebaseLoaded) {
+      window.STORE = v;
+      window.__firebaseLoaded = true;
+      if(window.__onLoaded) window.__onLoaded();
+      setSaved('Firebase 연결됨');
+      return;
+    }
+
+    // 실시간 업데이트 — 편집 중인 필드 보호하며 병합
+    const focused = document.activeElement;
+    const focusedId = focused ? focused.id || focused.closest('[data-id]')?.dataset?.id : null;
+    mergeRemoteData(v);
+    setSaved('동기화됨');
+  });
 
 } catch(e){ setSaved('오프라인 모드'); }
 </script>
@@ -541,30 +554,98 @@ function rowCls(t){return{ing:'ch-ing',alt:'ch-alt','2nd':'ch-2nd',off:'ch-off'}
 function roiCls(r){if(!r)return'roi-l';return r>=0.9?'roi-h':r>=0.6?'roi-m':'roi-l';}
 
 // ── save ─────────────────────────────────────────
-function schedSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(manualSave,2500); }
+function schedSave(){ /* 채널 데이터는 saveField로 자동 저장 */ }
 function manualSave(){
   if(window.__saveDB) window.__saveDB(window.STORE);
-  else { localStorage.setItem('guides_local',JSON.stringify(window.STORE)); setSaved('로컬 저장됨'); }
+  else localStorage.setItem('guides_local',JSON.stringify(window.STORE));
 }
 
-// Firebase에서 최신 데이터 다시 불러오기
+// 🔄 새로고침
 function reloadFromFirebase(){
   if(!window.__reloadDB){ alert('Firebase 미연결 상태입니다.'); return; }
-  if(!confirm('Firebase에서 최신 데이터를 불러옵니다.\n입력 중인 내용이 있다면 먼저 저장하세요.\n계속하시겠습니까?')) return;
-  setSaving();
   window.__reloadDB();
 }
 
-// Firebase 최신 데이터와 병합 후 저장
-function mergeAndSave() {
-  setSaving();
-  if(!window.__reloadDB) {
-    // Firebase 미연결 — 로컬 저장만
-    manualSave();
-    return;
+// 섹션별 저장 (카드 저장 버튼)
+function saveSection(section) {
+  const g = G(); if(!g) return;
+  const gid = currentGuideId;
+  let path, value;
+  if(section === 'overview') {
+    path = `guides/${gid}/overview`; value = g.overview||[];
+  } else if(section === 'cct') {
+    path = `guides/${gid}/cct`; value = g.cct||[];
+  } else if(section === 'guide') {
+    path = `guides/${gid}/guide`; value = g.guide||[];
+  } else if(section === 'meta') {
+    path = `guides/${gid}/meta`; value = g.meta||{};
   }
-  // Firebase 최신 읽어온 후 현재 변경사항 병합 저장
-  window.__mergeAndSaveDB(window.STORE);
+  if(path && window.__saveSection) {
+    window.__saveSection(path, value);
+  }
+}
+function saveBucket(bid) {
+  const g = G(); if(!g||!g.buckets[bid]) return;
+  const b = g.buckets[bid];
+  const path = `guides/${currentGuideId}/buckets/${bid}`;
+  const value = { id:b.id, name:b.name, theme:b.theme, target:b.target, note:b.note||'' };
+  if(window.__saveSection) window.__saveSection(path, value);
+}
+
+// 버킷 구조 전체 저장 (이름/목표예산)
+function saveAllBucketMeta() {
+  const g = G(); if(!g) return;
+  Object.keys(g.buckets||{}).forEach(bid => saveBucket(bid));
+  toast('버킷 예산 배분이 저장되었습니다.');
+}
+
+// 실시간 원격 데이터 병합 — 편집 중인 row는 건드리지 않음
+function mergeRemoteData(remote) {
+  if(!remote || !remote.guides) return;
+  const focused = document.activeElement;
+  const editingRowId = focused && ['INPUT','TEXTAREA','SELECT'].includes(focused.tagName)
+    ? focused.closest('tr[data-id]')?.dataset?.id : null;
+
+  Object.keys(remote.guides).forEach(gid => {
+    if(!window.STORE.guides) window.STORE.guides = {};
+    if(!window.STORE.guides[gid]) { window.STORE.guides[gid] = remote.guides[gid]; return; }
+    const local = window.STORE.guides[gid];
+    const rem   = remote.guides[gid];
+    // 메타/개요/CCT/가이드 — 원격 우선
+    ['title','subtitle','meta','overview','cct','guide'].forEach(k => {
+      if(rem[k] !== undefined) local[k] = rem[k];
+    });
+    // 버킷 구조(이름/목표) — 원격 우선
+    if(rem.buckets) {
+      if(!local.buckets) local.buckets = {};
+      Object.keys(rem.buckets).forEach(bid => {
+        if(!local.buckets[bid]) { local.buckets[bid] = rem.buckets[bid]; return; }
+        const lb = local.buckets[bid];
+        const rb = rem.buckets[bid];
+        lb.name = rb.name; lb.target = rb.target; lb.note = rb.note;
+        // row 병합 — 편집 중 row 제외
+        if(rb.rows) {
+          if(!lb.rows) lb.rows = [];
+          rb.rows.forEach(remRow => {
+            if(remRow.id === editingRowId) return;
+            const idx = lb.rows.findIndex(r=>r.id===remRow.id);
+            if(idx>=0) lb.rows[idx] = remRow;
+            else lb.rows.push(remRow);
+          });
+        }
+      });
+    }
+  });
+  // 현재 가이드 화면 업데이트
+  if(currentGuideId) {
+    renderBudgetTable();
+    renderOverview();
+    renderCct();
+    renderGuideInfo();
+    renderBuckets();
+  } else {
+    renderHomeList();
+  }
 }
 function setSaved(msg){
   const d=document.getElementById('sDot'); const t=document.getElementById('sTxt'); const st=document.getElementById('sTime');
