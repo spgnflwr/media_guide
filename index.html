@@ -473,13 +473,14 @@ try {
     setSaving();
     onValue(ref(db,'guides'), snap => {
       const v = snap.val();
-      if(v && v.guides) {
-        window.STORE = v;
-        window.__firebaseLoaded = true;
-        if(window.__renderAll) window.__renderAll();
-        setSaved('새로고침 완료');
-        if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
-      }
+      if(!v) { setSaved('데이터 없음'); return; }
+      // guides/guides 중첩 구조 처리
+      const data = (v.guides && typeof v.guides === 'object') ? v : { guides: v };
+      window.STORE = data;
+      window.__firebaseLoaded = true;
+      if(window.__renderAll) window.__renderAll();
+      setSaved('새로고침 완료');
+      if(window.toast) window.toast('최신 데이터를 불러왔습니다.');
     }, {onlyOnce:true});
   };
 
@@ -502,10 +503,13 @@ try {
   onValue(ref(db,'guides'), snap => {
     const v = snap.val();
     if(!v) { if(window.__initStore) window.__initStore(); setSaved('Firebase 연결됨'); return; }
-    if(!v.guides && (v._buckets || v.existing || v.expand || v.terre)) {
-      window.STORE = v; if(window.__onLoaded) window.__onLoaded(); setSaved('Firebase 연결됨'); return;
-    }
-    if(!v.guides) {
+    // guides/guides 중첩 구조 처리
+    const data = (v.guides && typeof v.guides === 'object') ? v : { guides: v };
+    if(!data.guides) {
+      // 구 구조 (wfp_july2026 등)
+      if(v._buckets || v.existing || v.expand || v.terre) {
+        window.STORE = v; if(window.__onLoaded) window.__onLoaded(); setSaved('Firebase 연결됨'); return;
+      }
       onValue(ref(db,'wfp_july2026'), snap2 => {
         const v2 = snap2.val();
         if(v2) { window.STORE = v2; if(window.__onLoaded) window.__onLoaded(); }
@@ -514,7 +518,7 @@ try {
       }, {onlyOnce:true});
       return;
     }
-    window.STORE = v;
+    window.STORE = data;
     window.__firebaseLoaded = true;
     if(window.__onLoaded) window.__onLoaded();
     setSaved('Firebase 연결됨');
