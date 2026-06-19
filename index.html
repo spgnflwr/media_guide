@@ -247,6 +247,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mp-table .ec{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;width:100%;}
 .mp-table .ec:focus{background:#FFFDE6;border-radius:4px;padding:2px 5px;margin:-2px -5px;width:calc(100% + 10px);}
 
+/* ══ MP SUMMARY ══ */
+.mp-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:0;margin-bottom:16px;overflow:hidden;}
+.mp-summary-header{padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;}
+.mp-summary-body{padding:16px;display:flex;flex-direction:column;gap:16px;}
+.mp-summary-compare{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.mp-summary-bucket{border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;}
+.mp-summary-bucket.propose{border-color:#3B82F6;background:#EFF6FF;}
+.mp-summary-bucket.alternative{border-color:#8B5CF6;background:#F5F3FF;}
+.mp-summary-bucket-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+.mp-summary-bucket.propose .mp-summary-bucket-label{color:#2563EB;}
+.mp-summary-bucket.alternative .mp-summary-bucket-label{color:#7C3AED;}
+.mp-summary-kpi{display:flex;gap:20px;flex-wrap:wrap;}
+.mp-summary-kpi-item{display:flex;flex-direction:column;gap:2px;}
+.mp-summary-kpi-val{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;}
+.mp-summary-kpi-label{font-size:10px;color:var(--text-3);}
+.mp-summary-tags{display:flex;gap:20px;flex-wrap:wrap;}
+.mp-summary-tag-group{display:flex;flex-direction:column;gap:6px;}
+.mp-summary-tag-group-label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;}
+.mp-summary-tag-items{display:flex;gap:6px;flex-wrap:wrap;}
+.mp-tag-chip{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--gray-100);color:var(--text-2);white-space:nowrap;}
+.mp-tag-chip span{font-weight:700;color:var(--text);}
+
+/* ══ MP BUCKET ══ */
+.mp-bucket{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;}
+.mp-bucket-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);}
+.mp-bucket-header.propose{background:#EFF6FF;border-color:#BFDBFE;}
+.mp-bucket-header.alternative{background:#F5F3FF;border-color:#DDD6FE;}
+.mp-bucket-label{font-size:12px;font-weight:700;}
+.mp-bucket-header.propose .mp-bucket-label{color:#2563EB;}
+.mp-bucket-header.alternative .mp-bucket-label{color:#7C3AED;}
+.mp-bucket-kpi{font-size:12px;color:var(--text-2);font-variant-numeric:tabular-nums;}
+.mp-move-btn{font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid;cursor:pointer;background:transparent;font-family:inherit;white-space:nowrap;}
+.mp-move-btn.to-alt{color:#7C3AED;border-color:#C4B5FD;}
+.mp-move-btn.to-alt:hover{background:#F5F3FF;}
+.mp-move-btn.to-pro{color:#2563EB;border-color:#93C5FD;}
+.mp-move-btn.to-pro:hover{background:#EFF6FF;}
+
 </style>
 </head>
 <body>
@@ -327,39 +364,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
-  <!-- 미디어플랜 테이블 -->
-  <div class="mp-table-wrap">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);">
-      <span class="sec-label">미디어플랜</span>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-ghost btn-sm" onclick="addMpRow()">+ 행 추가</button>
-        <button class="btn btn-primary btn-sm" onclick="saveMpRows()">💾 저장</button>
-      </div>
-    </div>
-    <div style="overflow-x:auto;">
-      <table class="mp-table" id="mp-table">
-        <thead>
-          <tr>
-            <th style="width:32px;text-align:center;">#</th>
-            <th style="width:110px;">Creative</th>
-            <th style="width:70px;">Duration</th>
-            <th style="width:90px;">CTA</th>
-            <th style="width:90px;">Ask</th>
-            <th style="width:90px;">Genre</th>
-            <th style="width:130px;">Channel</th>
-            <th class="r" style="width:130px;">Media Cost</th>
-            <th class="r" style="width:110px;">Spot Cost</th>
-            <th class="r" style="width:80px;">Spot</th>
-            <th style="width:36px;"></th>
-          </tr>
-        </thead>
-        <tbody id="mp-tbody"></tbody>
-        <tfoot id="mp-tfoot"></tfoot>
-      </table>
-    </div>
-  </div>
+  <!-- Summary -->
+  <div class="mp-summary" id="mp-summary"></div>
+
+  <!-- 버킷 영역 -->
+  <div id="mp-buckets-wrap"></div>
 
 </div>
+</div>
+
+<!-- Modal: 코멘트 -->
+<div class="modal-bg" id="mpCmtModal">
+  <div class="modal" style="width:480px;">
+    <div class="modal-title">코멘트</div>
+    <div class="mf">
+      <textarea class="mi" id="mp-cmt-textarea" rows="5" style="resize:vertical;font-family:inherit;" placeholder="코멘트를 입력하세요..."></textarea>
+    </div>
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('mpCmtModal')">취소</button>
+      <button class="btn btn-primary" onclick="saveMpCmt()">확인</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: 새 미디어플랜 -->
@@ -1503,6 +1528,38 @@ function switchHomeTab(tab) {
   if(tab==='mp') renderMpList();
 }
 
+// ══════════════════════════════════════════════════
+// MEDIA PLAN — 버킷 구조
+// MpDoc = { id, title, subtitle, client, version, updatedAt,
+//            propose:  { rows:[] },   ← 제안 버킷
+//            alternative: { rows:[] } ← 대안 버킷
+//            rows: []  ← 구 데이터 호환용 (마이그레이션 후 삭제)
+// }
+// MpRow = { id, creative, duration, cta, ask, genre, channel,
+//            mediaCost, spot, comment }
+// ══════════════════════════════════════════════════
+
+// ── 구 데이터(rows[]) → 버킷 구조 마이그레이션 ────────────
+function migrateMpToBuckets(mp) {
+  if(!mp) return mp;
+  // 이미 버킷 구조면 스킵
+  if(mp.propose) return mp;
+  // rows[] 있으면 전부 propose로 이동
+  mp.propose      = { rows: Array.isArray(mp.rows) ? mp.rows : [] };
+  mp.alternative  = { rows: [] };
+  delete mp.rows;
+  return mp;
+}
+
+// ── 홈 탭 전환 ────────────────────────────────────
+function switchHomeTab(tab) {
+  document.getElementById('tab-guide').classList.toggle('active', tab==='guide');
+  document.getElementById('tab-mp').classList.toggle('active', tab==='mp');
+  document.getElementById('home-guide-section').style.display = tab==='guide' ? '' : 'none';
+  document.getElementById('home-mp-section').style.display   = tab==='mp'    ? '' : 'none';
+  if(tab==='mp') renderMpList();
+}
+
 // ── MP 목록 렌더링 ─────────────────────────────────
 function renderMpList() {
   const wrap = document.getElementById('mp-list-wrap'); if(!wrap) return;
@@ -1512,8 +1569,10 @@ function renderMpList() {
     return;
   }
   wrap.innerHTML=`<div class="mp-list-wrap">${mps.map(mp=>{
-    const rowCount = (mp.rows||[]).length;
-    const totalCost = (mp.rows||[]).reduce((s,r)=>s+(r.mediaCost||0),0);
+    mp = migrateMpToBuckets(mp);
+    const pRows = mp.propose?.rows||[];
+    const aRows = mp.alternative?.rows||[];
+    const totalCost = [...pRows,...aRows].reduce((s,r)=>s+(r.mediaCost||0),0);
     return `<div class="mp-card" onclick="openMp('${mp.id}')">
       <div>
         <span class="mp-tag">${esc(mp.client||'')}</span>
@@ -1522,7 +1581,7 @@ function renderMpList() {
       <div class="gc-title">${esc(mp.title||'제목 없음')}</div>
       <div class="gc-sub">${esc(mp.subtitle||'')}</div>
       <div class="gc-meta">
-        <div class="gc-stat">${rowCount}개 채널 · ${fmt(totalCost)}<br><span style="font-size:10px;color:var(--text-3);">수정일: ${esc(mp.updatedAt||'-')}</span></div>
+        <div class="gc-stat">제안 ${pRows.length}ch · 대안 ${aRows.length}ch · ${fmt(totalCost)}<br><span style="font-size:10px;color:var(--text-3);">수정일: ${esc(mp.updatedAt||'-')}</span></div>
         <div class="gc-actions">
           <button class="btn btn-ghost btn-xs" onclick="event.stopPropagation();deleteMp('${mp.id}')">삭제</button>
           <button class="btn btn-primary btn-xs">열기</button>
@@ -1534,9 +1593,7 @@ function renderMpList() {
 
 // ── MP CRUD ───────────────────────────────────────
 function openNewMpModal() {
-  ['nm-title','nm-client','nm-version','nm-sub'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
-  });
+  ['nm-title','nm-client','nm-sub'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('nm-version').value='v1';
   openModal('newMpModal');
 }
@@ -1546,12 +1603,13 @@ function createMp(opts) {
   const id = uid();
   const mp = {
     id, title,
-    subtitle: opts?.subtitle || document.getElementById('nm-sub').value.trim(),
-    client:   opts?.client   || document.getElementById('nm-client').value.trim(),
-    version:  opts?.version  || document.getElementById('nm-version').value.trim() || 'v1',
+    subtitle:  opts?.subtitle || document.getElementById('nm-sub').value.trim(),
+    client:    opts?.client   || document.getElementById('nm-client').value.trim(),
+    version:   opts?.version  || document.getElementById('nm-version').value.trim() || 'v1',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toLocaleDateString('ko-KR'),
-    rows: opts?.rows || []
+    propose:     { rows: opts?.proposeRows     || [] },
+    alternative: { rows: opts?.alternativeRows || [] }
   };
   if(!window.STORE.mps) window.STORE.mps = {};
   window.STORE.mps[id] = mp;
@@ -1563,7 +1621,6 @@ function deleteMp(id) {
   if(!confirm('이 미디어플랜을 삭제하시겠습니까?')) return;
   delete window.STORE.mps[id];
   if(window.__saveField) window.__saveField(`mps/${id}`, null);
-  else manualSave();
   renderMpList();
   toast('삭제되었습니다.');
 }
@@ -1572,12 +1629,13 @@ function deleteCurrentMp() { if(currentMpId){ deleteMp(currentMpId); goHome(); }
 function saveMp(id) {
   const mp = (window.STORE.mps||{})[id]; if(!mp) return;
   if(window.__saveSection) window.__saveSection(`mps/${id}`, mp);
-  else manualSave();
 }
 
 // ── MP 열기/렌더링 ─────────────────────────────────
 function openMp(id) {
   currentMpId = id;
+  // 구 데이터 마이그레이션
+  if(window.STORE.mps[id]) window.STORE.mps[id] = migrateMpToBuckets(window.STORE.mps[id]);
   showScreen('mp');
   renderMp(id);
 }
@@ -1588,7 +1646,8 @@ function renderMp(id) {
   document.getElementById('mp-client-input').value  = mp.client||'';
   document.getElementById('mp-version-input').value = mp.version||'v1';
   document.getElementById('mp-date-input').value    = mp.updatedAt||'';
-  renderMpTable(id);
+  renderMpSummary(mp);
+  renderMpBuckets(mp);
 }
 function updateMpMeta(field, val) {
   const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
@@ -1601,108 +1660,241 @@ function saveMpMeta() {
   toast('저장되었습니다.');
 }
 
-// ── MP 테이블 렌더링 ──────────────────────────────
-function renderMpTable(id) {
-  const mp = (window.STORE.mps||{})[id||currentMpId]; if(!mp) return;
-  const rows = mp.rows||[];
-  const tbody = document.getElementById('mp-tbody');
-  const tfoot = document.getElementById('mp-tfoot');
-  if(!tbody) return;
+// ── Summary 렌더링 ────────────────────────────────
+function renderMpSummary(mp) {
+  const el = document.getElementById('mp-summary'); if(!el) return;
+  const pRows = mp.propose?.rows||[];
+  const aRows = mp.alternative?.rows||[];
+  const allRows = [...pRows, ...aRows];
 
-  tbody.innerHTML = rows.map((r,i) => {
-    const spotCost = (r.mediaCost && r.spot && r.spot>0) ? Math.round(r.mediaCost/r.spot) : null;
+  function bucketKpi(rows, label, cls) {
+    const cost = rows.reduce((s,r)=>s+(r.mediaCost||0),0);
+    const spot = rows.reduce((s,r)=>s+(r.spot||0),0);
+    const spc  = (cost&&spot>0)?Math.round(cost/spot):null;
+    return `<div class="mp-summary-bucket ${cls}">
+      <div class="mp-summary-bucket-label">${label}</div>
+      <div class="mp-summary-kpi">
+        <div class="mp-summary-kpi-item"><div class="mp-summary-kpi-val">${fmt(cost)}</div><div class="mp-summary-kpi-label">Media Cost</div></div>
+        <div class="mp-summary-kpi-item"><div class="mp-summary-kpi-val">${spot||0}회</div><div class="mp-summary-kpi-label">Spot</div></div>
+        <div class="mp-summary-kpi-item"><div class="mp-summary-kpi-val">${spc?fmt(spc):'-'}</div><div class="mp-summary-kpi-label">Spot Cost</div></div>
+        <div class="mp-summary-kpi-item"><div class="mp-summary-kpi-val">${rows.length}ch</div><div class="mp-summary-kpi-label">채널 수</div></div>
+      </div>
+    </div>`;
+  }
+
+  function tagGroup(label, rows, field) {
+    const map = {};
+    rows.forEach(r => {
+      const k = r[field]||'(미입력)';
+      map[k] = (map[k]||0)+1;
+    });
+    const chips = Object.entries(map).sort((a,b)=>b[1]-a[1])
+      .map(([k,v])=>`<div class="mp-tag-chip">${esc(k)} <span>${v}</span></div>`).join('');
+    return `<div class="mp-summary-tag-group">
+      <div class="mp-summary-tag-group-label">${label}</div>
+      <div class="mp-summary-tag-items">${chips||'<span style="color:var(--text-3);font-size:11px;">-</span>'}</div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="mp-summary-header">Summary</div>
+    <div class="mp-summary-body">
+      <div class="mp-summary-compare">
+        ${bucketKpi(pRows,'제안','propose')}
+        ${bucketKpi(aRows,'대안','alternative')}
+      </div>
+      <div class="mp-summary-tags">
+        ${tagGroup('Duration (제안)', pRows, 'duration')}
+        ${tagGroup('Duration (대안)', aRows, 'duration')}
+        ${tagGroup('Ask', allRows, 'ask')}
+        ${tagGroup('Genre', allRows, 'genre')}
+      </div>
+    </div>`;
+}
+
+// ── 버킷 렌더링 ───────────────────────────────────
+const MP_BUCKET_DEF = [
+  { key:'propose',     label:'제안', cls:'propose',     moveTo:'alternative', moveLabel:'→ 대안' },
+  { key:'alternative', label:'대안', cls:'alternative', moveTo:'propose',     moveLabel:'→ 제안' }
+];
+
+function renderMpBuckets(mp) {
+  const wrap = document.getElementById('mp-buckets-wrap'); if(!wrap) return;
+  wrap.innerHTML = MP_BUCKET_DEF.map(def => renderMpBucketHTML(mp, def)).join('');
+}
+
+function renderMpBucketHTML(mp, def) {
+  const rows = (mp[def.key]?.rows)||[];
+  const cost = rows.reduce((s,r)=>s+(r.mediaCost||0),0);
+  const spot = rows.reduce((s,r)=>s+(r.spot||0),0);
+  const spc  = (cost&&spot>0)?Math.round(cost/spot):null;
+
+  // 크리에이티브별 합산
+  const creativeMap = {};
+  rows.forEach(r => {
+    const k = r.creative||'(미입력)';
+    if(!creativeMap[k]) creativeMap[k]={cost:0,spot:0};
+    creativeMap[k].cost += r.mediaCost||0;
+    creativeMap[k].spot += r.spot||0;
+  });
+  const creativeRows = Object.entries(creativeMap).map(([name,v])=>{
+    const s = (v.cost&&v.spot>0)?Math.round(v.cost/v.spot):null;
+    // colspan=7: #(1)+Creative~Channel(6) = 7칸 / 총 컬럼 12개(#,Creative,Duration,CTA,Ask,Genre,Channel,MediaCost,SpotCost,Spot,Comment,관리)
+    return `<tr class="mp-creative-total">
+      <td colspan="7" style="font-size:11px;color:#4A2C8F;font-weight:700;">▸ ${esc(name)}</td>
+      <td class="r" style="color:#4A2C8F;">${fmt(v.cost)}</td>
+      <td class="r" style="color:#4A2C8F;font-size:11px;">${s?fmt(s):'-'}</td>
+      <td class="r" style="color:#4A2C8F;">${v.spot||'-'}</td>
+      <td colspan="2"></td>
+    </tr>`;
+  }).join('');
+
+  const rowsHtml = rows.map((r,i) => {
+    const spotCost = (r.mediaCost&&r.spot>0)?Math.round(r.mediaCost/r.spot):null;
+    const hasCmt = r.comment&&r.comment.trim();
     return `<tr id="mprow-${r.id}">
       <td style="text-align:center;color:var(--text-3);">${i+1}</td>
-      <td><input class="ec" value="${esc(r.creative||'')}" placeholder="-" oninput="updateMpRow('${r.id}','creative',this.value)"></td>
-      <td><input class="ec" value="${esc(r.duration||'')}" placeholder="-" oninput="updateMpRow('${r.id}','duration',this.value)"></td>
-      <td><input class="ec" value="${esc(r.cta||'')}" placeholder="-" oninput="updateMpRow('${r.id}','cta',this.value)"></td>
-      <td><input class="ec" value="${esc(r.ask||'')}" placeholder="-" oninput="updateMpRow('${r.id}','ask',this.value)"></td>
-      <td><input class="ec" value="${esc(r.genre||'')}" placeholder="-" oninput="updateMpRow('${r.id}','genre',this.value)"></td>
-      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="-" oninput="updateMpRow('${r.id}','channel',this.value)"></td>
+      <td><input class="ec" value="${esc(r.creative||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','creative',this.value)"></td>
+      <td><input class="ec" value="${esc(r.duration||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','duration',this.value)"></td>
+      <td><input class="ec" value="${esc(r.cta||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','cta',this.value)"></td>
+      <td><input class="ec" value="${esc(r.ask||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','ask',this.value)"></td>
+      <td><input class="ec" value="${esc(r.genre||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','genre',this.value)"></td>
+      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
       <td class="r">
         <input class="ec" style="text-align:right;"
           value="${fmtN(r.mediaCost)}"
           onfocus="this.value=this.value.replace(/[^0-9]/g,'')"
           onblur="this.value=fmtN(this.value)||''"
-          oninput="updateMpRow('${r.id}','mediaCost',unF(this.value))">
+          oninput="updateMpRow('${def.key}','${r.id}','mediaCost',unF(this.value))">
       </td>
       <td class="r" id="mpspc-${r.id}" style="color:var(--text-3);font-size:12px;">${spotCost?fmt(spotCost):'-'}</td>
       <td class="r">
         <input class="ec" style="text-align:right;width:50px;" value="${r.spot||''}" placeholder="-"
-          oninput="updateMpRow('${r.id}','spot',parseInt(this.value)||0)">
+          oninput="updateMpRow('${def.key}','${r.id}','spot',parseInt(this.value)||0)">
       </td>
-      <td style="text-align:center;"><button class="btn-icon" onclick="removeMpRow('${r.id}')">✕</button></td>
+      <td style="text-align:center;">
+        <button class="btn-icon ${hasCmt?'':'ec'}" style="font-size:11px;color:${hasCmt?'#2563EB':'var(--text-3)'};" title="${esc(r.comment||'')}" onclick="openMpCmt('${def.key}','${r.id}')">💬</button>
+      </td>
+      <td style="text-align:center;white-space:nowrap;">
+        <button class="mp-move-btn ${def.cls==='propose'?'to-alt':'to-pro'}" onclick="moveMpRow('${def.key}','${r.id}','${def.moveTo}')">${def.moveLabel}</button>
+        <button class="btn-icon" onclick="removeMpRow('${def.key}','${r.id}')">✕</button>
+      </td>
     </tr>`;
   }).join('');
 
-  // 합계 행
-  renderMpTotals(mp);
-}
-
-function renderMpTotals(mp) {
-  const tfoot = document.getElementById('mp-tfoot'); if(!tfoot) return;
-  const rows = (mp||{}).rows||[];
-  const totalCost  = rows.reduce((s,r)=>s+(r.mediaCost||0),0);
-  const totalSpot  = rows.reduce((s,r)=>s+(r.spot||0),0);
-  const totalSpc   = (totalCost&&totalSpot>0) ? Math.round(totalCost/totalSpot) : null;
-
-  // 크리에티브별 합산
-  const creativeMap = {};
-  rows.forEach(r => {
-    const key = r.creative||'(미입력)';
-    if(!creativeMap[key]) creativeMap[key]={cost:0,spot:0};
-    creativeMap[key].cost += r.mediaCost||0;
-    creativeMap[key].spot += r.spot||0;
-  });
-  const creativeRows = Object.entries(creativeMap).map(([name,v])=>{
-    const spc = (v.cost&&v.spot>0)?Math.round(v.cost/v.spot):null;
-    return `<tr class="mp-creative-total">
-      <td colspan="6" style="font-size:11px;color:#4A2C8F;font-weight:700;">▸ ${esc(name)}</td>
-      <td class="r" style="color:#4A2C8F;">${fmt(v.cost)}</td>
-      <td class="r" style="color:#4A2C8F;font-size:11px;">${spc?fmt(spc):'-'}</td>
-      <td class="r" style="color:#4A2C8F;">${v.spot||'-'}</td>
-      <td></td>
-    </tr>`;
-  }).join('');
-
-  tfoot.innerHTML = `
-    ${creativeRows}
-    <tr class="mp-total">
-      <td colspan="6">Total</td>
-      <td class="r">${fmt(totalCost)}</td>
-      <td class="r" style="font-size:12px;">${totalSpc?fmt(totalSpc):'-'}</td>
-      <td class="r">${totalSpot||'-'}</td>
-      <td></td>
-    </tr>`;
+  return `<div class="mp-bucket" id="mp-bucket-${def.key}">
+    <div class="mp-bucket-header ${def.cls}">
+      <span class="mp-bucket-label">${def.label}</span>
+      <span class="mp-bucket-kpi">${rows.length}ch · ${fmt(cost)} · ${spot}회 · Spot Cost ${spc?fmt(spc):'-'}</span>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="addMpRow('${def.key}')">+ 행 추가</button>
+        <button class="btn btn-primary btn-sm" onclick="saveMpRows()">💾 저장</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="mp-table">
+        <thead><tr>
+          <th style="width:28px;text-align:center;">#</th>
+          <th style="width:110px;">Creative</th>
+          <th style="width:65px;">Duration</th>
+          <th style="width:85px;">CTA</th>
+          <th style="width:70px;">Ask</th>
+          <th style="width:100px;">Genre</th>
+          <th style="width:120px;">Channel</th>
+          <th class="r" style="width:120px;">Media Cost</th>
+          <th class="r" style="width:100px;">Spot Cost</th>
+          <th class="r" style="width:60px;">Spot</th>
+          <th style="width:28px;text-align:center;">💬</th>
+          <th style="width:80px;"></th>
+        </tr></thead>
+        <tbody>${rowsHtml}</tbody>
+        <tfoot>
+          ${creativeRows}
+          <tr class="mp-total">
+            <td colspan="7">Total</td>
+            <td class="r">${fmt(cost)}</td>
+            <td class="r" style="font-size:12px;">${spc?fmt(spc):'-'}</td>
+            <td class="r">${spot||'-'}</td>
+            <td colspan="2"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>`;
 }
 
 // ── MP Row CRUD ───────────────────────────────────
-function addMpRow() {
+function addMpRow(bucketKey) {
   const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
-  if(!mp.rows) mp.rows=[];
-  mp.rows.push({id:uid(),creative:'',duration:'',cta:'',ask:'',genre:'',channel:'',mediaCost:0,spot:0});
-  renderMpTable(currentMpId);
+  if(!mp[bucketKey]) mp[bucketKey]={rows:[]};
+  if(!mp[bucketKey].rows) mp[bucketKey].rows=[];
+  mp[bucketKey].rows.push({id:uid(),creative:'',duration:'',cta:'',ask:'',genre:'',channel:'',mediaCost:0,spot:0,comment:''});
+  renderMpBuckets(mp);
+  renderMpSummary(mp);
 }
-function removeMpRow(rid) {
+function removeMpRow(bucketKey, rid) {
   const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
-  mp.rows = (mp.rows||[]).filter(r=>r.id!==rid);
-  renderMpTable(currentMpId);
+  mp[bucketKey].rows = (mp[bucketKey].rows||[]).filter(r=>r.id!==rid);
+  renderMpBuckets(mp);
+  renderMpSummary(mp);
 }
-function updateMpRow(rid, field, val) {
+function moveMpRow(fromKey, rid, toKey) {
   const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
-  const r = (mp.rows||[]).find(x=>x.id===rid); if(!r) return;
+  const r = (mp[fromKey]?.rows||[]).find(x=>x.id===rid); if(!r) return;
+  mp[fromKey].rows = mp[fromKey].rows.filter(x=>x.id!==rid);
+  if(!mp[toKey]) mp[toKey]={rows:[]};
+  if(!mp[toKey].rows) mp[toKey].rows=[];
+  mp[toKey].rows.push(r);
+  renderMpBuckets(mp);
+  renderMpSummary(mp);
+  toast(`${toKey==='propose'?'제안':'대안'} 버킷으로 이동했습니다.`);
+}
+function updateMpRow(bucketKey, rid, field, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const r = (mp[bucketKey]?.rows||[]).find(x=>x.id===rid); if(!r) return;
   r[field] = val;
-  // Spot Cost 실시간 갱신
   if(field==='mediaCost'||field==='spot') {
     const spc = (r.mediaCost&&r.spot>0)?Math.round(r.mediaCost/r.spot):null;
     const el = document.getElementById(`mpspc-${rid}`);
     if(el) el.innerHTML = spc?fmt(spc):'-';
-    renderMpTotals(mp);
+  }
+  if(['creative','mediaCost','spot'].includes(field)) {
+    renderMpSummary(mp);
+    // 버킷 헤더 kpi 갱신 (전체 재렌더 없이)
+    const bkt = document.getElementById(`mp-bucket-${bucketKey}`);
+    if(bkt) {
+      const rows = mp[bucketKey].rows||[];
+      const cost = rows.reduce((s,x)=>s+(x.mediaCost||0),0);
+      const spot = rows.reduce((s,x)=>s+(x.spot||0),0);
+      const spc  = (cost&&spot>0)?Math.round(cost/spot):null;
+      const kpiEl = bkt.querySelector('.mp-bucket-kpi');
+      if(kpiEl) kpiEl.textContent = `${rows.length}ch · ${fmt(cost)} · ${spot}회 · Spot Cost ${spc?fmt(spc):'-'}`;
+    }
   }
 }
 function saveMpRows() {
   saveMp(currentMpId);
   toast('저장되었습니다.');
+}
+
+// ── 코멘트 모달 ───────────────────────────────────
+let _mpCmtTarget = null;
+function openMpCmt(bucketKey, rid) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const r = (mp[bucketKey]?.rows||[]).find(x=>x.id===rid); if(!r) return;
+  _mpCmtTarget = {bucketKey, rid};
+  document.getElementById('mp-cmt-textarea').value = r.comment||'';
+  openModal('mpCmtModal');
+}
+function saveMpCmt() {
+  if(!_mpCmtTarget) return;
+  const {bucketKey, rid} = _mpCmtTarget;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const r = (mp[bucketKey]?.rows||[]).find(x=>x.id===rid); if(!r) return;
+  r.comment = document.getElementById('mp-cmt-textarea').value.trim();
+  closeModal('mpCmtModal');
+  renderMpBuckets(mp);
+  _mpCmtTarget = null;
 }
 
 // ── 청약가이드 → 미디어플랜 가져오기 ──────────────
@@ -1715,41 +1907,25 @@ function openImportFromGuideModal(gid) {
 function doImportFromGuide() {
   const gid = document.getElementById('import-guide-select').value;
   const g = (window.STORE.guides||{})[gid]; if(!g) return;
-
-  // 버킷 순서대로 확정 데이터가 있는 채널만 수집
-  const rows = [];
+  const proposeRows = [];
   Object.values(g.buckets||{}).forEach(b => {
     (b.rows||[]).forEach(r => {
       if(r.type==='off') return;
       const amt  = r.ag?.amt ? (parseInt(String(r.ag.amt).replace(/[^0-9]/g,''))||0) : (r.budget||0);
       const conf = parseInt(r.ag?.confirmed)||0;
       const sec  = r.ag?.sec || r.sec || '';
-      rows.push({
-        id: uid(),
-        creative: '',
-        duration: sec,
-        cta: '', ask: '', genre: '',
-        channel: r.ch||'',
-        mediaCost: amt,
-        spot: conf
-      });
+      proposeRows.push({id:uid(),creative:'',duration:sec,cta:'',ask:'',genre:'',channel:r.ch||'',mediaCost:amt,spot:conf,comment:''});
     });
   });
-
   closeModal('importFromGuideModal');
-
-  // 새 미디어플랜 생성
   const mpId = createMp({
-    title:    g.title.replace('청약가이드','미디어플랜').replace('가이드','미디어플랜'),
-    subtitle: g.subtitle||'',
-    client:   g.meta?.client||'',
-    version:  'v1',
-    rows
+    title:       g.title.replace('청약가이드','미디어플랜').replace('가이드','미디어플랜'),
+    subtitle:    g.subtitle||'',
+    client:      g.meta?.client||'',
+    version:     'v1',
+    proposeRows, alternativeRows:[]
   });
-  if(mpId) {
-    toast('미디어플랜으로 가져왔습니다.');
-    openMp(mpId);
-  }
+  if(mpId) { toast('미디어플랜으로 가져왔습니다.'); openMp(mpId); }
 }
 
 // ── goHome은 위에서 재정의됨
