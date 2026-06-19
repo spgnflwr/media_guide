@@ -639,14 +639,16 @@ try {
     setSaving();
     onValue(ref(db, DB_ROOT), snap => {
       const v = snap.val();
-      if(v) {
-        window.STORE.guides = v;
+      if(v) window.STORE.guides = v;
+      // mps도 함께 로드 후 정규화
+      onValue(ref(db, 'mps'), snapMp => {
+        window.STORE.mps = snapMp.val() || {};
         if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
-      }
-      window.__firebaseLoaded = true;
-      window.__onLoaded && window.__onLoaded();
-      setSaved('새로고침 완료');
-      window.toast && window.toast('최신 데이터를 불러왔습니다.');
+        window.__firebaseLoaded = true;
+        window.__onLoaded && window.__onLoaded();
+        setSaved('새로고침 완료');
+        window.toast && window.toast('최신 데이터를 불러왔습니다.');
+      }, {onlyOnce:true});
     }, {onlyOnce:true});
   };
 
@@ -1923,28 +1925,13 @@ window.__onLoaded = function() {
   window.__firebaseLoaded = true;
   let store = window.STORE;
 
-  // ★ Firebase 로드 후 반드시 배열 정규화
+  // Firebase 로드 후 배열 정규화 (읽기 전용 — Firebase에 재저장 안 함)
   store = normalizeFirebaseArrays(store);
   window.STORE = store;
 
   if(store && store.guides) {
     renderHomeList();
     if(currentGuideId) renderGuide(currentGuideId);
-
-    // ★ 오염된 rows(숫자키+랜덤ID 혼재) 자동 정리 — Firebase에 배열로 재저장
-    // saveField로 rows 전체를 덮어써서 깨끗한 배열로 교체
-    if(window.__saveSection) {
-      Object.keys(store.guides).forEach(gid => {
-        const g = store.guides[gid];
-        if(!g || !g.buckets) return;
-        Object.keys(g.buckets).forEach(bid => {
-          const b = g.buckets[bid];
-          if(!b || !Array.isArray(b.rows)) return;
-          // rows가 배열이면 Firebase에 재저장하여 오염된 구조 교체
-          window.__saveSection(`guides/${gid}/buckets/${bid}/rows`, b.rows);
-        });
-      });
-    }
   } else if(store && (store._buckets || store.existing || store.expand || store.terre)) {
     const migrated = migrateOldData(store);
     window.STORE = { guides: { [migrated.id]: migrated } };
