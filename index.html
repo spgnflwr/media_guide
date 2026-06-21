@@ -313,6 +313,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .cm-group-a{background:#EFF6FF !important;}
 .cm-group-b{background:#F5F3FF !important;}
 
+/* ══ SETTINGS ══ */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:flex-start;justify-content:flex-end;}
+.settings-overlay.open{display:flex;}
+.settings-panel{width:560px;height:100vh;background:var(--surface);box-shadow:-4px 0 24px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;}
+.settings-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);background:var(--gray-50);}
+.settings-title{font-size:15px;font-weight:700;color:var(--text);}
+.settings-body{flex:1;overflow-y:auto;padding:20px;}
+.settings-section{margin-bottom:24px;}
+.settings-section-title{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.ch-master-table{width:100%;border-collapse:collapse;font-size:12px;}
+.ch-master-table th{padding:7px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:left;}
+.ch-master-table th:last-child{border-right:none;}
+.ch-master-table td{padding:6px 8px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;}
+.ch-master-table td:last-child{border-right:none;}
+.ch-master-table tr:last-child td{border-bottom:none;}
+.ch-ec{border:none;background:transparent;font:inherit;color:var(--text);outline:none;width:100%;padding:0;}
+.ch-ec:focus{background:#FFFDE6;border-radius:3px;padding:2px 4px;margin:-2px -4px;}
+
 /* ══ DOWNLOAD / VERSION ══ */
 .dl-menu{position:relative;display:inline-block;}
 .dl-dropdown{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;z-index:100;overflow:hidden;display:none;}
@@ -367,6 +385,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           placeholder="이름 입력" value=""
           onchange="updateMyName(this.value)" />
       </div>
+      <button class="btn btn-ghost" onclick="openSettings()" style="font-size:16px;padding:6px 10px;" title="설정">⚙</button>
       <div id="home-tab-action"></div>
     </div>
   </div>
@@ -562,6 +581,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
 </div>
+</div>
+
+<!-- ══════════ SETTINGS PANEL ══════════ -->
+<div class="settings-overlay" id="settings-overlay" onclick="closeSettingsOutside(event)">
+  <div class="settings-panel">
+    <div class="settings-header">
+      <span class="settings-title">⚙ 설정</span>
+      <button class="btn-icon" onclick="closeSettings()" style="font-size:18px;">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <!-- 채널 마스터 -->
+      <div class="settings-section">
+        <div class="settings-section-title">채널 마스터</div>
+        <div style="font-size:11px;color:var(--text-3);margin-bottom:10px;">청약가이드 전역에서 사용하는 채널 목록입니다. Media Budget Plan의 Genre와 Clock Matrix 채널 선택에 자동 반영됩니다.</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <button class="btn btn-ghost btn-sm" onclick="addChannelMaster()">+ 채널 추가</button>
+          <button class="btn btn-primary btn-sm" onclick="saveChannelMaster()">💾 저장</button>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="ch-master-table">
+            <thead>
+              <tr>
+                <th style="width:36px;">#</th>
+                <th style="min-width:140px;">채널명</th>
+                <th style="min-width:130px;">Genre</th>
+                <th style="min-width:130px;">표시채널명</th>
+                <th style="width:36px;"></th>
+              </tr>
+            </thead>
+            <tbody id="ch-master-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <!-- Modal: 버전 히스토리 -->
@@ -958,26 +1014,28 @@ try {
     renderPresence(snap.val() || {});
   });
 
-  // ⑥ 초기 로드 — guides 로드
+  // ⑥ 초기 로드 — guides + mps + settings 순차 로드
   onValue(ref(db, DB_ROOT), snap => {
     const v = snap.val();
-    if(v) {
-      window.STORE.guides = v;
-    }
-    // ⑦ mps도 함께 로드
+    if(v) window.STORE.guides = v;
+
     onValue(ref(db, 'mps'), snapMp => {
-      const mp = snapMp.val();
-      window.STORE.mps = mp || {};
-      setTimeout(() => {
-        if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
-        window.__firebaseLoaded = true;
-        if(v) {
-          window.__onLoaded && window.__onLoaded();
-        } else {
-          window.__initStore && window.__initStore();
-        }
-        setSaved('Firebase 연결됨');
-      }, 0);
+      window.STORE.mps = snapMp.val() || {};
+
+      onValue(ref(db, 'settings'), snapSet => {
+        const s = snapSet.val();
+        window.STORE.settings = s || { channels: [] };
+        setTimeout(() => {
+          if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
+          window.__firebaseLoaded = true;
+          if(v) {
+            window.__onLoaded && window.__onLoaded();
+          } else {
+            window.__initStore && window.__initStore();
+          }
+          setSaved('Firebase 연결됨');
+        }, 0);
+      }, {onlyOnce: true});
     }, {onlyOnce: true});
   }, {onlyOnce: true});
 
@@ -1933,7 +1991,6 @@ function renderMpSummary(mp) {
   const el = document.getElementById('mp-summary'); if(!el) return;
   const pRows = mp.propose?.rows||[];
   const aRows = mp.alternative?.rows||[];
-  const allRows = [...pRows, ...aRows];
 
   function bucketKpi(rows, label, cls) {
     const cost = rows.reduce((s,r)=>s+(r.mediaCost||0),0);
@@ -1950,7 +2007,7 @@ function renderMpSummary(mp) {
     </div>`;
   }
 
-  function tagGroup(label, rows, field) {
+  function tagGroup(label, rows, field, color) {
     const map = {};
     rows.forEach(r => {
       const k = r[field]||'(미입력)';
@@ -1959,23 +2016,45 @@ function renderMpSummary(mp) {
     const chips = Object.entries(map).sort((a,b)=>b[1]-a[1])
       .map(([k,v])=>`<div class="mp-tag-chip">${esc(k)} <span>${v}</span></div>`).join('');
     return `<div class="mp-summary-tag-group">
-      <div class="mp-summary-tag-group-label">${label}</div>
+      <div class="mp-summary-tag-group-label" style="color:${color||'var(--text-3)'};">${label}</div>
       <div class="mp-summary-tag-items">${chips||'<span style="color:var(--text-3);font-size:11px;">-</span>'}</div>
     </div>`;
   }
+
+  // 제안/대안 구분된 태그 섹션
+  const tagSection = (rows, label, cls, color) => {
+    const hasData = rows.length > 0;
+    if(!hasData) return '';
+    return `<div style="flex:1;min-width:280px;">
+      <div style="font-size:10px;font-weight:700;color:${color};text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid ${color}22;">${label}</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${tagGroup('Duration', rows, 'duration')}
+        ${tagGroup('ASK',      rows, 'ask')}
+        ${tagGroup('Genre',    rows, 'genre')}
+      </div>
+    </div>`;
+  };
 
   el.innerHTML = `
     <div class="mp-summary-header">Summary</div>
     <div class="mp-summary-body">
       <div class="mp-summary-compare">
-        ${bucketKpi(pRows,'제안','propose')}
-        ${bucketKpi(aRows,'대안','alternative')}
-      </div>
-      <div class="mp-summary-tags">
-        ${tagGroup('Duration (제안)', pRows, 'duration')}
-        ${tagGroup('Duration (대안)', aRows, 'duration')}
-        ${tagGroup('Ask', allRows, 'ask')}
-        ${tagGroup('Genre', allRows, 'genre')}
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${bucketKpi(pRows,'제안','propose')}
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${tagGroup('Duration', pRows, 'duration', '#2563EB')}
+            ${tagGroup('ASK',      pRows, 'ask',      '#2563EB')}
+            ${tagGroup('Genre',    pRows, 'genre',    '#2563EB')}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${bucketKpi(aRows,'대안','alternative')}
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            ${tagGroup('Duration', aRows, 'duration', '#7C3AED')}
+            ${tagGroup('ASK',      aRows, 'ask',      '#7C3AED')}
+            ${tagGroup('Genre',    aRows, 'genre',    '#7C3AED')}
+          </div>
+        </div>
       </div>
     </div>`;
 }
@@ -2017,17 +2096,44 @@ function renderMpBucketHTML(mp, def) {
     </tr>`;
   }).join('');
 
+  // Clock Matrix에서 채널별 선택 가능한 값 목록 추출
+  const cmRows = mp.clockMatrix?.rows || [];
+  const getMpCmOpts = (channel, field) => {
+    const vals = [...new Set(cmRows.filter(c=>c.channel===channel).map(c=>c[field]).filter(Boolean))];
+    return vals;
+  };
+
   const rowsHtml = rows.map((r,i) => {
     const spotCost = (r.mediaCost&&r.spot>0)?Math.round(r.mediaCost/r.spot):null;
     const hasCmt = r.comment&&r.comment.trim();
+
+    // 채널 마스터에서 Genre 자동 참조
+    const chInfo = typeof getChannelInfo === 'function' ? getChannelInfo(r.channel) : null;
+    const genreVal = r.genre || chInfo?.genre || '';
+
+    // 해당 채널의 Clock Matrix 값 목록
+    const creativeOpts = getMpCmOpts(r.channel, 'creative');
+    const durationOpts = getMpCmOpts(r.channel, 'duration');
+    const ctaOpts      = getMpCmOpts(r.channel, 'cta');
+    const askOpts      = getMpCmOpts(r.channel, 'askLevel');
+
+    const mkSel = (field, val, opts, key) => {
+      const allOpts = [...new Set([...(val?[val]:[]), ...opts])];
+      if(!allOpts.length) return `<input class="ec" value="${esc(val||'')}" placeholder="-" oninput="updateMpRow('${key}','${r.id}','${field}',this.value)">`;
+      return `<select class="ec-sel" onchange="updateMpRow('${key}','${r.id}','${field}',this.value)">
+        <option value="">-</option>
+        ${allOpts.map(o=>`<option${o===val?' selected':''}>${esc(o)}</option>`).join('')}
+      </select>`;
+    };
+
     return `<tr id="mprow-${r.id}">
       <td style="text-align:center;color:var(--text-3);">${i+1}</td>
-      <td><input class="ec" value="${esc(r.creative||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','creative',this.value)"></td>
-      <td><input class="ec" value="${esc(r.duration||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','duration',this.value)"></td>
-      <td><input class="ec" value="${esc(r.cta||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','cta',this.value)"></td>
-      <td><input class="ec" value="${esc(r.ask||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','ask',this.value)"></td>
-      <td><input class="ec" value="${esc(r.genre||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','genre',this.value)"></td>
-      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="-" oninput="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
+      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="채널명" oninput="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
+      <td>${mkSel('creative', r.creative||'', creativeOpts, def.key)}</td>
+      <td>${mkSel('duration', r.duration||'', durationOpts, def.key)}</td>
+      <td>${mkSel('cta',      r.cta||'',      ctaOpts,      def.key)}</td>
+      <td>${mkSel('ask',      r.ask||'',      askOpts,      def.key)}</td>
+      <td style="color:var(--text-3);font-size:12px;">${esc(genreVal||'-')}</td>
       <td class="r">
         <input class="ec" style="text-align:right;"
           value="${fmtN(r.mediaCost)}"
@@ -2063,12 +2169,12 @@ function renderMpBucketHTML(mp, def) {
       <table class="mp-table">
         <thead><tr>
           <th style="width:28px;text-align:center;">#</th>
+          <th style="width:120px;">Channel</th>
           <th style="width:110px;">Creative</th>
           <th style="width:65px;">Duration</th>
           <th style="width:85px;">CTA</th>
           <th style="width:70px;">Ask</th>
-          <th style="width:100px;">Genre</th>
-          <th style="width:120px;">Channel</th>
+          <th style="width:90px;">Genre <span style="font-size:9px;font-weight:400;color:#aaa;">(자동)</span></th>
           <th class="r" style="width:120px;">Media Cost</th>
           <th class="r" style="width:100px;">Spot Cost</th>
           <th class="r" style="width:60px;">Spot</th>
@@ -2121,6 +2227,25 @@ function updateMpRow(bucketKey, rid, field, val) {
   const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
   const r = (mp[bucketKey]?.rows||[]).find(x=>x.id===rid); if(!r) return;
   r[field] = val;
+
+  // channel 변경 시 Clock Matrix + 채널마스터에서 자동 매핑
+  if(field === 'channel' && val) {
+    const cmRows = mp.clockMatrix?.rows || [];
+    const cmMatch = cmRows.find(c => c.channel === val);
+    if(cmMatch) {
+      if(!r.creative && cmMatch.creative)  r.creative = cmMatch.creative;
+      if(!r.duration && cmMatch.duration)  r.duration = cmMatch.duration;
+      if(!r.cta      && cmMatch.cta)       r.cta      = cmMatch.cta;
+      if(!r.ask      && cmMatch.askLevel)  r.ask      = cmMatch.askLevel;
+    }
+    // 채널 마스터에서 Genre 자동 매핑
+    const chInfo = typeof getChannelInfo === 'function' ? getChannelInfo(val) : null;
+    if(chInfo?.genre && !r.genre) r.genre = chInfo.genre;
+    renderMpBuckets(mp);
+    renderMpSummary(mp);
+    return;
+  }
+
   if(field==='mediaCost'||field==='spot') {
     const spc = (r.mediaCost&&r.spot>0)?Math.round(r.mediaCost/r.spot):null;
     const el = document.getElementById(`mpspc-${rid}`);
@@ -2128,7 +2253,6 @@ function updateMpRow(bucketKey, rid, field, val) {
   }
   if(['creative','mediaCost','spot'].includes(field)) {
     renderMpSummary(mp);
-    // 버킷 헤더 kpi 갱신 (전체 재렌더 없이)
     const bkt = document.getElementById(`mp-bucket-${bucketKey}`);
     if(bkt) {
       const rows = mp[bucketKey].rows||[];
@@ -2652,6 +2776,99 @@ function importCmFromExcel(input) {
 
 
 // ── goHome은 위에서 재정의됨
+
+// ══════════════════════════════════════════════════
+// 채널 마스터 & 설정
+// STORE.settings.channels = [{ id, name, genre, displayName }]
+// Firebase: settings/channels
+// ══════════════════════════════════════════════════
+
+// ── 설정 패널 열기/닫기 ───────────────────────────
+function openSettings() {
+  loadChannelMaster();
+  document.getElementById('settings-overlay').classList.add('open');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('open');
+}
+function closeSettingsOutside(e) {
+  if(e.target === document.getElementById('settings-overlay')) closeSettings();
+}
+
+// ── 채널 마스터 로드 ──────────────────────────────
+function getChannelMaster() {
+  if(!window.STORE.settings) window.STORE.settings = {};
+  if(!window.STORE.settings.channels) window.STORE.settings.channels = [];
+  return window.STORE.settings.channels;
+}
+
+function loadChannelMaster() {
+  // Firebase에서 로드 (이미 STORE에 있으면 그대로 사용)
+  renderChannelMaster();
+}
+
+function renderChannelMaster() {
+  const tbody = document.getElementById('ch-master-tbody'); if(!tbody) return;
+  const channels = getChannelMaster();
+  if(!channels.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--text-3);">채널을 추가하세요</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = channels.map((ch, i) => `
+    <tr>
+      <td style="text-align:center;color:var(--text-3);">${i+1}</td>
+      <td><input class="ch-ec" value="${esc(ch.name||'')}" oninput="updateChannelMaster('${ch.id}','name',this.value)" placeholder="예: SBS Biz"></td>
+      <td><input class="ch-ec" value="${esc(ch.genre||'')}" oninput="updateChannelMaster('${ch.id}','genre',this.value)" placeholder="예: News"></td>
+      <td><input class="ch-ec" value="${esc(ch.displayName||'')}" oninput="updateChannelMaster('${ch.id}','displayName',this.value)" placeholder="예: SBS Biz (케이블)"></td>
+      <td style="text-align:center;"><button class="btn-icon" onclick="removeChannelMaster('${ch.id}')">✕</button></td>
+    </tr>`).join('');
+}
+
+function addChannelMaster() {
+  getChannelMaster().push({id:uid(), name:'', genre:'', displayName:''});
+  renderChannelMaster();
+}
+function removeChannelMaster(id) {
+  window.STORE.settings.channels = getChannelMaster().filter(c=>c.id!==id);
+  renderChannelMaster();
+}
+function updateChannelMaster(id, field, val) {
+  const ch = getChannelMaster().find(c=>c.id===id); if(!ch) return;
+  ch[field] = val;
+  // 입력 중 재렌더 없이 저장만
+}
+function saveChannelMaster() {
+  if(window.__saveSection) window.__saveSection('settings/channels', getChannelMaster());
+  toast('채널 마스터가 저장되었습니다.');
+  closeSettings();
+}
+
+// 채널명으로 마스터 데이터 조회
+function getChannelInfo(channelName) {
+  const ch = getChannelMaster().find(c =>
+    c.name === channelName || c.displayName === channelName
+  );
+  return ch || null;
+}
+
+// ── Firebase settings 로드 ────────────────────────
+// __onLoaded에서 호출
+function loadSettings() {
+  // settings는 Firebase DB의 'settings' 경로에서 로드
+  if(window.__firebaseLoaded && window.STORE.settings) return;
+  // 없으면 빈 객체로 초기화
+  if(!window.STORE.settings) window.STORE.settings = { channels: [] };
+}
+
+// ══════════════════════════════════════════════════
+// Media Budget Plan — Clock Matrix 자동 매핑
+// ══════════════════════════════════════════════════
+function getMpCmMatch(mp, channel) {
+  // Clock Matrix에서 해당 채널의 첫 번째 row 반환
+  const cmRows = mp.clockMatrix?.rows || [];
+  return cmRows.find(r => r.channel === channel);
+}
+
 
 // ══════════════════════════════════════════════════
 // 다운로드 메뉴
