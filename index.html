@@ -51,7 +51,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .empty-state-title{font-size:16px;font-weight:600;color:var(--text-2);margin-bottom:6px;}
 
 /* ══ GUIDE PAGE ══ */
-.guide-page{max-width:1700px;margin:0 auto;padding:28px 36px 100px;}
+.guide-page{max-width:100%;padding:28px 48px 100px;}
 
 /* topbar */
 .topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
@@ -226,9 +226,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mp-ver{font-size:10px;color:var(--text-3);background:var(--gray-100);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:8px;margin-left:4px;}
 
 /* ══ MEDIA PLAN PAGE ══ */
-.mp-page{max-width:1600px;margin:0 auto;padding:28px 36px 100px;}
+.mp-page{max-width:100%;padding:28px 48px 100px;}
 .mp-topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
-.mp-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.mp-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 20px;margin-bottom:12px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
 .mp-info-item{display:flex;align-items:center;gap:8px;font-size:12px;}
 .mp-info-label{color:var(--text-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
 
@@ -283,6 +283,70 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mp-move-btn.to-alt:hover{background:#F5F3FF;}
 .mp-move-btn.to-pro{color:#2563EB;border-color:#93C5FD;}
 .mp-move-btn.to-pro:hover{background:#EFF6FF;}
+
+/* ══ MP INNER TABS ══ */
+.mp-inner-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:12px;}
+.mp-inner-tab{padding:9px 18px;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;border:none;background:transparent;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
+.mp-inner-tab:hover{color:var(--text);}
+.mp-inner-tab.active{color:var(--blue-600);border-bottom-color:var(--blue-600);}
+
+/* ══ CLOCK MATRIX ══ */
+.cm-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.cm-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);}
+.cm-scroll{overflow-x:auto;}
+.cm-table{width:100%;border-collapse:collapse;min-width:3200px;font-size:12px;}
+.cm-table th{padding:7px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;text-align:left;position:sticky;top:0;z-index:2;}
+.cm-table th.r{text-align:right;}
+.cm-table th.sticky{position:sticky;left:0;z-index:3;background:var(--gray-100);}
+.cm-table td{padding:7px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;white-space:nowrap;max-width:none;}
+.cm-table td.sticky{position:sticky;left:0;background:var(--surface);z-index:1;font-weight:600;color:var(--text);}
+.cm-table td:last-child{border-right:none;}
+.cm-table tr:last-child td{border-bottom:none;}
+.cm-table tr:hover td{background:#F8FAFF;}
+.cm-table tr:hover td.sticky{background:#EFF6FF;}
+.cm-table td.sticky:nth-child(3){box-shadow:2px 0 4px rgba(0,0,0,.06);}
+.cm-ec{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;width:100%;}
+.cm-ec:focus{background:#FFFDE6;border-radius:3px;padding:2px 5px;margin:-2px -5px;width:calc(100% + 10px);}
+.cm-sel{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;cursor:pointer;width:100%;}
+.cm-sel:focus{background:#FFFDE6;}
+.cm-auto{font-size:11px;color:var(--text-3);font-style:italic;}
+.cm-group-a{background:#EFF6FF !important;}
+.cm-group-b{background:#F5F3FF !important;}
+
+/* ══ DOWNLOAD / VERSION ══ */
+.dl-menu{position:relative;display:inline-block;}
+.dl-dropdown{position:absolute;right:0;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 4px 16px rgba(0,0,0,.12);min-width:200px;z-index:100;overflow:hidden;display:none;}
+.dl-dropdown.open{display:block;}
+.dl-dropdown-item{display:flex;align-items:center;gap:8px;padding:10px 14px;font-size:13px;cursor:pointer;color:var(--text);text-decoration:none;}
+.dl-dropdown-item:hover{background:var(--gray-50);}
+.dl-dropdown-divider{height:1px;background:var(--border);margin:4px 0;}
+.ver-list{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.ver-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:12px;}
+.ver-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#EFF6FF;color:#2563EB;}
+
+/* ══ CREATIVE PLAN ══ */
+.cp-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;}
+.cp-select{border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;font:inherit;font-size:12px;background:var(--surface);color:var(--text);outline:none;cursor:pointer;}
+.cp-select:focus{border-color:var(--blue-600);}
+.cp-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.cp-header-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);}
+.cp-scroll{overflow-x:auto;}
+.cp-table{width:100%;border-collapse:collapse;font-size:12px;}
+.cp-table th{padding:7px 10px;font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;background:var(--gray-50);border-bottom:1px solid var(--border);border-right:1px solid var(--border);white-space:nowrap;text-align:left;}
+.cp-table th.sticky{position:sticky;left:0;z-index:3;background:var(--gray-100);}
+.cp-table th.week-th{background:#C8184A;color:#fff;text-align:center;min-width:140px;}
+.cp-table td{padding:7px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
+.cp-table td.sticky{position:sticky;left:0;background:var(--surface);z-index:1;}
+.cp-table td:last-child,.cp-table th:last-child{border-right:none;}
+.cp-table tr:last-child td{border-bottom:none;}
+.cp-table tr:hover td{background:#F8FAFF;}
+.cp-table tr:hover td.sticky{background:#EFF6FF;}
+.cp-ec{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;width:100%;}
+.cp-ec:focus{background:#FFFDE6;border-radius:3px;padding:2px 4px;margin:-2px -4px;}
+.cp-sel{border:none;background:transparent;font:inherit;color:var(--text);padding:0;outline:none;cursor:pointer;width:100%;}
+.cp-week-cell{font-size:11px;color:#C8184A;font-weight:600;text-align:center;}
+.cp-week-empty{color:var(--text-3);text-align:center;font-size:11px;}
+.cp-week-label{font-size:10px;color:rgba(255,255,255,.8);display:block;font-weight:400;margin-top:1px;}
 
 </style>
 </head>
@@ -343,6 +407,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <input class="editable-sub" id="mp-sub-input" value="" oninput="updateMpMeta('subtitle',this.value)" />
     </div>
     <button class="btn btn-ghost btn-sm" onclick="deleteCurrentMp()">🗑 삭제</button>
+    <button class="btn btn-ghost btn-sm" onclick="openVersionModal()">📁 미디어플랜 파일</button>
   </div>
 
   <!-- 기본 정보 바 -->
@@ -364,13 +429,188 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     </div>
   </div>
 
-  <!-- Summary -->
-  <div class="mp-summary" id="mp-summary"></div>
+  <!-- 내부 탭 -->
+  <div class="mp-inner-tabs">
+    <button class="mp-inner-tab active" id="mp-tab-budget"   onclick="switchMpTab('budget')">📊 Media Budget Plan</button>
+    <button class="mp-inner-tab"        id="mp-tab-creative" onclick="switchMpTab('creative')">🎬 Creative Plan</button>
+    <button class="mp-inner-tab"        id="mp-tab-clock"    onclick="switchMpTab('clock')">🕐 Clock Matrix</button>
+    <button class="mp-inner-tab"        id="mp-tab-callno"   onclick="switchMpTab('callno')">📞 Call Number</button>
+  </div>
 
-  <!-- 버킷 영역 -->
-  <div id="mp-buckets-wrap"></div>
+  <!-- [탭1] Media Budget Plan -->
+  <div id="mp-panel-budget">
+    <div class="mp-summary" id="mp-summary"></div>
+    <div id="mp-buckets-wrap"></div>
+  </div>
+
+  <!-- [탭2] Creative Plan -->
+  <div id="mp-panel-creative" style="display:none;">
+    <!-- 툴바 -->
+    <div class="cp-toolbar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;font-weight:700;color:var(--text-3);">기준 월</span>
+        <select class="cp-select" id="cp-year" onchange="renderCreativePlan()"></select>
+        <select class="cp-select" id="cp-month" onchange="renderCreativePlan()">
+          <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+          <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+          <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="addCpRow()">+ 행 추가</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportCreativePlan()">⬇ 엑셀 다운로드</button>
+        <button class="btn btn-primary btn-sm" onclick="saveCpRows()">💾 저장</button>
+      </div>
+    </div>
+    <!-- 테이블 -->
+    <div class="cp-wrap">
+      <div class="cp-scroll">
+        <table class="cp-table" id="cp-table">
+          <thead id="cp-thead"></thead>
+          <tbody id="cp-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- [탭3] Clock Matrix -->
+  <div id="mp-panel-clock" style="display:none;">
+    <div class="cm-wrap">
+      <div class="cm-header">
+        <span class="sec-label">Clock Matrix</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0;" title="엑셀 파일 업로드">
+            📂 엑셀 가져오기
+            <input type="file" id="cm-excel-input" accept=".xlsx,.xls,.csv" style="display:none;" onchange="importCmFromExcel(this)">
+          </label>
+          <button class="btn btn-ghost btn-sm" onclick="addCmRow()">+ 행 추가</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportClockMatrix()">⬇ 엑셀 다운로드</button>
+          <button class="btn btn-primary btn-sm" onclick="saveCmRows()">💾 저장</button>
+        </div>
+      </div>
+      <div id="cm-filters"></div>
+      <div class="cm-scroll">
+        <table class="cm-table" id="cm-table">
+          <thead>
+            <tr>
+              <th class="sticky" style="min-width:36px;left:0;">#</th>
+              <th class="sticky" style="min-width:150px;left:36px;">Creative</th>
+              <th class="sticky" style="min-width:200px;left:186px;">Clock No.</th>
+              <th style="min-width:180px;">Code (Creative+CTA)</th>
+              <th style="min-width:130px;">Phone Number</th>
+              <th style="min-width:130px;">CTA</th>
+              <th style="min-width:140px;">Channel/Station</th>
+              <th style="min-width:90px;">Duration</th>
+              <th style="min-width:160px;">Ask Level / Statement</th>
+              <th style="min-width:150px;">Phone Distributor</th>
+              <th style="min-width:120px;">VO Artist</th>
+              <th style="min-width:140px;">Music Title</th>
+              <th style="min-width:150px;">Search Keyword</th>
+              <th style="min-width:110px;">SMS Keyword</th>
+              <th style="min-width:180px;">URL</th>
+              <th style="min-width:70px;">SD/HD</th>
+              <th style="min-width:110px;">Air Date</th>
+              <th style="min-width:110px;">Off Air Date</th>
+              <th style="min-width:130px;">Days of Week</th>
+              <th style="min-width:120px;">Timeband</th>
+              <th style="min-width:110px;">Sales Hours</th>
+              <th style="min-width:180px;">UTM</th>
+              <th style="min-width:160px;">Notes</th>
+              <th style="min-width:150px;">Code <span class="cm-auto">(자동)</span></th>
+              <th style="min-width:130px;">Tel-No <span class="cm-auto">(자동)</span></th>
+              <th style="min-width:120px;">CTA_ <span class="cm-auto">(자동)</span></th>
+              <th style="min-width:90px;">구분</th>
+              <th style="width:36px;"></th>
+            </tr>
+          </thead>
+          <tbody id="cm-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
 </div>
+
+  <!-- [탭4] Call Number -->
+  <div id="mp-panel-callno" style="display:none;">
+
+    <!-- 콜번호 목록 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);">
+        <span class="sec-label">콜번호 관리</span>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost btn-sm" onclick="addCallNo()">+ 콜번호 추가</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportCallNumber()">⬇ 엑셀 다운로드</button>
+          <button class="btn btn-primary btn-sm" onclick="saveCallNos()">💾 저장</button>
+        </div>
+      </div>
+      <div id="callno-chips" style="padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;min-height:44px;align-items:center;"></div>
+    </div>
+
+    <!-- 소재×번호 매핑 매트릭스 -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);">
+        <span class="sec-label">소재별 콜번호 매핑 현황</span>
+        <span style="font-size:11px;color:var(--text-3);">Clock Matrix 기준 자동 생성</span>
+      </div>
+      <div style="overflow-x:auto;" id="callno-matrix-wrap">
+        <div style="padding:24px;text-align:center;color:var(--text-3);">Clock Matrix에 데이터를 입력하면 자동으로 표시됩니다.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<!-- Modal: 버전 히스토리 -->
+<div class="modal-bg" id="versionModal">
+  <div class="modal" style="width:640px;max-height:85vh;display:flex;flex-direction:column;">
+    <div class="modal-title">📁 미디어플랜 파일 관리</div>
+
+    <!-- 최신 버전 강조 표시 -->
+    <div id="ver-latest-wrap" style="display:none;margin-bottom:14px;padding:12px 16px;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:var(--r-lg);">
+      <div style="font-size:10px;font-weight:700;color:#2563EB;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;">최신 버전</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="ver-latest-badge" class="ver-badge" style="font-size:12px;padding:3px 10px;"></span>
+        <div style="flex:1;min-width:0;">
+          <div id="ver-latest-filename" style="font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          <div id="ver-latest-info" style="font-size:11px;color:var(--text-3);margin-top:1px;"></div>
+        </div>
+        <a id="ver-latest-link" href="#" target="_blank" class="btn btn-primary btn-sm">⬇ 다운로드</a>
+      </div>
+    </div>
+
+    <!-- 새 버전 업로드 -->
+    <div style="background:var(--gray-50);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--text-3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;">새 버전 업로드</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input class="mi" id="ver-label" style="width:90px;" placeholder="버전 (v2)">
+        <input class="mi" id="ver-memo" style="flex:1;min-width:150px;" placeholder="설명 (예: 7월 최종 확정안)">
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;margin:0;">
+          📂 파일 선택
+          <input type="file" id="ver-file-input" accept=".xlsx,.xls,.pdf" style="display:none;" onchange="handleVerFileSelect(this)">
+        </label>
+        <button class="btn btn-primary btn-sm" onclick="uploadVersion()" id="ver-upload-btn" disabled>⬆ 업로드</button>
+      </div>
+      <div id="ver-file-name" style="font-size:11px;color:var(--text-3);margin-top:6px;"></div>
+      <div id="ver-upload-progress" style="display:none;margin-top:8px;">
+        <div style="height:4px;background:var(--gray-100);border-radius:2px;overflow:hidden;">
+          <div id="ver-progress-bar" style="height:100%;background:var(--blue-600);width:0%;transition:width .3s;"></div>
+        </div>
+        <div id="ver-upload-status" style="font-size:11px;color:var(--text-3);margin-top:4px;">업로드 중...</div>
+      </div>
+    </div>
+
+    <!-- 버전 목록 -->
+    <div style="font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px;">전체 버전 목록</div>
+    <div style="overflow-y:auto;flex:1;" id="ver-list"></div>
+
+    <div class="m-actions">
+      <button class="btn btn-ghost" onclick="closeModal('versionModal')">닫기</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: 코멘트 -->
@@ -604,9 +844,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="toast" id="toast"></div>
 
 <!-- Firebase SDK -->
+<!-- SheetJS for Excel import -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, update, onValue, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getStorage, ref as sRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey:            "AIzaSyDpColK3e6FSOKLzwCdLqrO5WkWYVNqGXA",
@@ -630,6 +874,28 @@ const DB_ROOT = 'guides'; // 청약가이드 경로 (하위 호환 유지)
 try {
   const app = initializeApp(firebaseConfig);
   const db  = getDatabase(app);
+
+  // Storage 별도 초기화 (실패해도 DB는 동작)
+  try {
+    const storage = getStorage(app);
+    window.__uploadFile = async (path, file) => {
+      const storageRef = sRef(storage, path);
+      const snapshot = await uploadBytes(storageRef, file);
+      const url = await getDownloadURL(snapshot.ref);
+      return url;
+    };
+    window.__getDownloadURL = async (path) => {
+      const storageRef = sRef(storage, path);
+      return await getDownloadURL(storageRef);
+    };
+    window.__deleteFile = async (path) => {
+      const storageRef = sRef(storage, path);
+      await deleteObject(storageRef);
+    };
+    console.log('Firebase Storage 초기화 완료');
+  } catch(se) {
+    console.warn('Firebase Storage 초기화 실패:', se);
+  }
 
   // 세션
   const sid = 'sess_' + Math.random().toString(36).slice(2,9);
@@ -1646,6 +1912,8 @@ function renderMp(id) {
   document.getElementById('mp-client-input').value  = mp.client||'';
   document.getElementById('mp-version-input').value = mp.version||'v1';
   document.getElementById('mp-date-input').value    = mp.updatedAt||'';
+  // 탭 초기화 — 항상 budget 탭부터
+  switchMpTab('budget');
   renderMpSummary(mp);
   renderMpBuckets(mp);
 }
@@ -1928,7 +2196,1052 @@ function doImportFromGuide() {
   if(mpId) { toast('미디어플랜으로 가져왔습니다.'); openMp(mpId); }
 }
 
+// ══════════════════════════════════════════════════
+// MP 내부 탭 전환
+// ══════════════════════════════════════════════════
+let currentMpTab = 'budget';
+
+function switchMpTab(tab) {
+  currentMpTab = tab;
+  ['budget','creative','clock','callno'].forEach(t => {
+    document.getElementById(`mp-tab-${t}`)?.classList.toggle('active', t===tab);
+    const panel = document.getElementById(`mp-panel-${t}`);
+    if(panel) panel.style.display = t===tab ? '' : 'none';
+  });
+  if(tab==='clock') {
+    const mp = (window.STORE.mps||{})[currentMpId];
+    if(mp) { renderCmFilters(mp); renderCmTable(mp); }
+  }
+  if(tab==='creative') {
+    initCpSelects();
+    renderCreativePlan();
+  }
+  if(tab==='callno') {
+    renderCallNos();
+  }
+}
+
+// ══════════════════════════════════════════════════
+// CLOCK MATRIX
+// ══════════════════════════════════════════════════
+const CM_DURATIONS = ['60초','90초','15초','30초','45초','120초'];
+const CM_SDHD      = ['HD','SD'];
+
+// 코드 자동 생성: 채널+크리에이티브 합성
+function genCmCode(r) {
+  const ch  = (r.channel||'').replace(/\s+/g,'').slice(0,6);
+  const cr  = (r.creative||'').replace(/\s+/g,'').slice(0,8);
+  return ch && cr ? `${ch}_${cr}` : (ch||cr||'');
+}
+
+function renderCmTable(mp) {
+  const tbody = document.getElementById('cm-tbody'); if(!tbody) return;
+  if(!mp.clockMatrix) mp.clockMatrix = { rows:[] };
+  // 필터 렌더링
+  renderCmFilters(mp);
+  // 필터 적용
+  const allRows = mp.clockMatrix.rows || [];
+  const rows = allRows.filter(r => {
+    return Object.entries(window._cmFilters||{}).every(([k,v]) => r[k]===v);
+  });
+  const countEl = document.getElementById('cm-filter-count');
+  if(countEl) countEl.textContent = Object.keys(window._cmFilters||{}).length
+    ? `${rows.length} / ${allRows.length}개 표시`
+    : `총 ${allRows.length}개`;
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const code   = genCmCode(r);
+    const telNo  = r.phoneNo || '';
+    const ctaA   = r.cta || '';
+    return `<tr id="cmrow-${r.id}">
+      <td class="sticky" style="text-align:center;color:var(--text-3);left:0;">${i+1}</td>
+      <td class="sticky" style="left:36px;"><input class="cm-ec" value="${esc(r.creative||'')}" oninput="updateCmRow('${r.id}','creative',this.value)" placeholder="소재명"></td>
+      <td class="sticky" style="left:186px;border-right:2px solid var(--border);"><input class="cm-ec" value="${esc(r.clockNo||'')}" oninput="updateCmRow('${r.id}','clockNo',this.value)" placeholder="XXXX"></td>
+      <td style="color:var(--text-3);font-size:11px;font-style:italic;white-space:nowrap;" id="cmcode-${r.id}">${esc(`${r.creative||''}${r.cta?'+'+r.cta:''}`)}</td>
+      <td><select class="cm-sel" onchange="updateCmRow('${r.id}','phoneNo',this.value)">${getCmPhoneOpts(mp, r.phoneNo||'미지정')}</select></td>
+      <td><input class="cm-ec" value="${esc(r.cta||'')}"         oninput="updateCmRow('${r.id}','cta',this.value)"        placeholder="Phone+QR"></td>
+      <td><input class="cm-ec" value="${esc(r.channel||'')}"     oninput="updateCmRow('${r.id}','channel',this.value)"    placeholder="채널명"></td>
+      <td>
+        <select class="cm-sel" onchange="updateCmRow('${r.id}','duration',this.value)">
+          <option value="">-</option>
+          ${CM_DURATIONS.map(d=>`<option${r.duration===d?' selected':''}>${d}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="cm-ec" value="${esc(r.askLevel||'')}" oninput="updateCmRow('${r.id}','askLevel',this.value)" placeholder="7000/month"></td>
+      <td><input class="cm-ec" value="${esc(r.phoneDist||'')}"   oninput="updateCmRow('${r.id}','phoneDist',this.value)"  placeholder="배포처"></td>
+      <td><input class="cm-ec" value="${esc(r.voArtist||'')}"    oninput="updateCmRow('${r.id}','voArtist',this.value)"   placeholder="VO 아티스트"></td>
+      <td><input class="cm-ec" value="${esc(r.musicTitle||'')}"  oninput="updateCmRow('${r.id}','musicTitle',this.value)" placeholder="곡명"></td>
+      <td><input class="cm-ec" value="${esc(r.searchKw||'')}"    oninput="updateCmRow('${r.id}','searchKw',this.value)"   placeholder="검색어"></td>
+      <td><input class="cm-ec" value="${esc(r.smsKw||'')}"       oninput="updateCmRow('${r.id}','smsKw',this.value)"      placeholder="SMS 키워드"></td>
+      <td><input class="cm-ec" value="${esc(r.url||'')}"         oninput="updateCmRow('${r.id}','url',this.value)"        placeholder="https://"></td>
+      <td>
+        <select class="cm-sel" onchange="updateCmRow('${r.id}','sdHd',this.value)">
+          <option value="">-</option>
+          ${CM_SDHD.map(v=>`<option${r.sdHd===v?' selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td><input class="cm-ec" value="${esc(r.airDate||'')}"     oninput="updateCmRow('${r.id}','airDate',this.value)"    placeholder="2026-07-01"></td>
+      <td><input class="cm-ec" value="${esc(r.offAirDate||'')}"  oninput="updateCmRow('${r.id}','offAirDate',this.value)" placeholder="2026-07-31"></td>
+      <td><input class="cm-ec" value="${esc(r.dowCm||'')}"       oninput="updateCmRow('${r.id}','dowCm',this.value)"      placeholder="Mon-Fri"></td>
+      <td><input class="cm-ec" value="${esc(r.timeband||'')}"    oninput="updateCmRow('${r.id}','timeband',this.value)"   placeholder="09-18시"></td>
+      <td><input class="cm-ec" value="${esc(r.salesHours||'')}"  oninput="updateCmRow('${r.id}','salesHours',this.value)" placeholder="8h"></td>
+      <td><input class="cm-ec" value="${esc(r.utm||'')}"         oninput="updateCmRow('${r.id}','utm',this.value)"        placeholder="utm_source=..."></td>
+      <td><input class="cm-ec" value="${esc(r.notes||'')}"       oninput="updateCmRow('${r.id}','notes',this.value)"      placeholder="메모"></td>
+      <td class="cm-auto" id="cmcode-${r.id}">${esc(code)}</td>
+      <td class="cm-auto">${esc(telNo)}</td>
+      <td class="cm-auto">${esc(ctaA)}</td>
+      <td><input class="cm-ec" value="${esc(r.category||'')}"    oninput="updateCmRow('${r.id}','category',this.value)"   placeholder="구분"></td>
+      <td style="text-align:center;"><button class="btn-icon" onclick="removeCmRow('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addCmRow() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  if(!mp.clockMatrix) mp.clockMatrix = {rows:[]};
+  mp.clockMatrix.rows.push({
+    id:uid(), creative:'', clockNo:'', duration:'', askLevel:'', askStatement:'',
+    phoneNo:'', phoneDist:'', cta:'', voArtist:'', musicTitle:'',
+    searchKw:'', smsKw:'', url:'', sdHd:'', airDate:'', offAirDate:'',
+    dowCm:'', timeband:'', salesHours:'', channel:'', utm:'', notes:'', category:''
+  });
+  renderCmTable(mp);
+}
+
+function removeCmRow(rid) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.clockMatrix) return;
+  mp.clockMatrix.rows = mp.clockMatrix.rows.filter(r=>r.id!==rid);
+  renderCmTable(mp);
+}
+
+function updateCmRow(rid, field, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.clockMatrix) return;
+  const r = mp.clockMatrix.rows.find(x=>x.id===rid); if(!r) return;
+  r[field] = val;
+  // 자동 생성 컬럼 실시간 갱신
+  if(field==='creative'||field==='channel') {
+    const codeEl = document.getElementById(`cmcode-${rid}`);
+    if(codeEl) codeEl.textContent = genCmCode(r);
+  }
+}
+
+function saveCmRows() {
+  saveMp(currentMpId);
+  toast('Clock Matrix 저장되었습니다.');
+}
+
+// ══════════════════════════════════════════════════
+// CALL NUMBER 마스터
+// CallNo = { id, number, distributor, type, memo }
+// Phone Number는 여기서 목록 참조
+// ══════════════════════════════════════════════════
+
+// 소재별 색상 팔레트
+const CREATIVE_COLORS = [
+  {bg:'#DBEAFE',text:'#1D4ED8'},{bg:'#D1FAE5',text:'#065F46'},
+  {bg:'#FEF3C7',text:'#92400E'},{bg:'#FCE7F3',text:'#9D174D'},
+  {bg:'#EDE9FE',text:'#5B21B6'},{bg:'#FFEDD5',text:'#9A3412'},
+  {bg:'#F0FDF4',text:'#14532D'},{bg:'#FDF4FF',text:'#701A75'},
+  {bg:'#FFF7ED',text:'#7C2D12'},{bg:'#F0F9FF',text:'#0C4A6E'},
+];
+function getCreativeColor(idx) {
+  return CREATIVE_COLORS[idx % CREATIVE_COLORS.length];
+}
+
+// ── Call Number 렌더링 ────────────────────────────
+function renderCallNos() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  if(!mp.callNumbers) mp.callNumbers = [];
+  const cmRows = mp.clockMatrix?.rows || [];
+
+  // ① 콜번호 칩 목록
+  const chips = document.getElementById('callno-chips');
+  if(chips) {
+    chips.innerHTML = mp.callNumbers.length
+      ? mp.callNumbers.map((cn,i) => `
+          <div style="display:flex;align-items:center;gap:6px;background:var(--gray-50);border:1px solid var(--border);border-radius:8px;padding:5px 10px;">
+            <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;">
+              <input class="ec" value="${esc(cn.number||'')}" style="width:100px;font-weight:700;" oninput="updateCallNo('${cn.id}','number',this.value)" placeholder="0000-0000">
+            </span>
+            <button class="btn-icon" style="font-size:11px;color:var(--text-3);" onclick="removeCallNo('${cn.id}')">✕</button>
+          </div>`).join('')
+      : `<span style="color:var(--text-3);font-size:12px;">콜번호를 추가하세요</span>`;
+  }
+
+  // ② 매핑 매트릭스 (별도 함수로 분리)
+  refreshCallNoMatrix(mp);
+}
+
+function addCallNo() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  if(!mp.callNumbers) mp.callNumbers = [];
+  mp.callNumbers.push({id:uid(), number:'', distributor:'', type:'', memo:''});
+  renderCallNos();
+}
+function removeCallNo(id) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  mp.callNumbers = (mp.callNumbers||[]).filter(c=>c.id!==id);
+  renderCallNos();
+}
+function updateCallNo(id, field, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const cn = (mp.callNumbers||[]).find(c=>c.id===id); if(!cn) return;
+  cn[field] = val;
+  // 칩 재렌더 없이 매트릭스만 갱신 (입력 중 포커스 유지)
+  refreshCallNoMatrix(mp);
+}
+
+function refreshCallNoMatrix(mp) {
+  // 매트릭스 영역만 갱신 (칩 영역은 건드리지 않음)
+  const cmRows = mp.clockMatrix?.rows || [];
+  const creatives = [...new Set(cmRows.map(r=>r.creative).filter(Boolean))];
+  const callNos = (mp.callNumbers||[]).map(c=>c.number).filter(Boolean);
+  const matrixWrap = document.getElementById('callno-matrix-wrap');
+  if(!matrixWrap) return;
+
+  if(!creatives.length || !callNos.length) {
+    matrixWrap.innerHTML = `<div style="padding:24px;text-align:center;color:var(--text-3);">Clock Matrix에 데이터와 콜번호를 입력하면 자동으로 표시됩니다.</div>`;
+    return;
+  }
+
+  // matrix: callNo → creative → { mapped: bool, channels: [] }
+  const matrix = {};
+  callNos.forEach(no => {
+    matrix[no] = {};
+    creatives.forEach(cr => { matrix[no][cr] = { mapped: false, channels: [] }; });
+  });
+  cmRows.forEach(r => {
+    if(r.phoneNo && matrix[r.phoneNo] && r.creative) {
+      if(!matrix[r.phoneNo][r.creative]) matrix[r.phoneNo][r.creative] = { mapped: false, channels: [] };
+      matrix[r.phoneNo][r.creative].mapped = true; // Phone Number 배정 = 색상 표시
+      if(r.channel) matrix[r.phoneNo][r.creative].channels.push(r.channel);
+    }
+  });
+
+  const legend = creatives.map((cr,i) => {
+    const col = getCreativeColor(i);
+    return `<span style="display:inline-flex;align-items:center;gap:4px;margin-right:12px;font-size:11px;">
+      <span style="width:10px;height:10px;border-radius:2px;background:${col.bg};border:1px solid ${col.text};display:inline-block;"></span>
+      <span style="color:${col.text};font-weight:600;">${esc(cr)}</span>
+    </span>`;
+  }).join('');
+
+  const thCreatives = creatives.map((cr,i) => {
+    const col = getCreativeColor(i);
+    return `<th style="min-width:130px;background:${col.bg};color:${col.text};font-size:11px;font-weight:700;text-align:center;padding:7px 10px;border-right:1px solid var(--border);">${esc(cr)}</th>`;
+  }).join('');
+
+  const rows = callNos.map(no => {
+    const cells = creatives.map((cr,i) => {
+      const cell = matrix[no]?.[cr] || { mapped: false, channels: [] };
+      const col = getCreativeColor(i);
+      if(cell.mapped) {
+        // Phone Number 배정됨 → 색상 표시
+        const chHtml = cell.channels.length
+          ? cell.channels.map(ch =>
+              `<div style="font-size:11px;font-weight:600;color:${col.text};">${esc(ch)}</div>`
+            ).join('')
+          : ''; // 채널명 없어도 색상만 표시
+        return `<td style="background:${col.bg};text-align:center;padding:6px 8px;border-right:1px solid var(--border);">${chHtml}</td>`;
+      }
+      return `<td style="background:#F9FAFB;text-align:center;padding:6px 8px;border-right:1px solid var(--border);"><span style="color:#E5E7EB;font-size:16px;">—</span></td>`;
+    }).join('');
+    return `<tr>
+      <td style="font-weight:700;font-variant-numeric:tabular-nums;padding:8px 14px;white-space:nowrap;border-right:2px solid var(--border);background:var(--surface);">${esc(no)}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  matrixWrap.innerHTML = `
+    <div style="padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;">${legend}</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:12px;">
+        <thead><tr>
+          <th style="min-width:120px;background:var(--gray-100);padding:8px 14px;text-align:left;border-right:2px solid var(--border);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;">전화번호</th>
+          ${thCreatives}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+function saveCallNos() {
+  saveMp(currentMpId);
+  toast('콜번호가 저장되었습니다.');
+}
+
+// ── Clock Matrix Phone Number — 콜번호 마스터 연동 ──
+function getCmPhoneOpts(mp, currentVal) {
+  const callNos = mp.callNumbers || [];
+  return [
+    `<option value="미지정"${currentVal==='미지정'||!currentVal?' selected':''}>미지정</option>`,
+    `<option value="해당무"${currentVal==='해당무'?' selected':''}>해당무</option>`,
+    ...callNos.map(cn => {
+      const v = cn.number || '(번호없음)';
+      return `<option value="${esc(v)}"${currentVal===v?' selected':''}>${esc(v)}${cn.distributor?' · '+esc(cn.distributor):''}</option>`;
+    })
+  ].join('');
+}
+
+// ══════════════════════════════════════════════════
+// CLOCK MATRIX 필터링
+// ══════════════════════════════════════════════════
+window._cmFilters = {};
+
+function renderCmFilters(mp) {
+  const el = document.getElementById('cm-filters'); if(!el) return;
+  const rows = mp.clockMatrix?.rows || [];
+
+  const uniq = (field) => [...new Set(rows.map(r=>r[field]).filter(Boolean))].sort();
+
+  el.innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding:8px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);align-items:center;">
+      <span style="font-size:11px;font-weight:700;color:var(--text-3);">필터</span>
+      ${[
+        {key:'creative',  label:'Creative'},
+        {key:'duration',  label:'Duration'},
+        {key:'cta',       label:'CTA'},
+        {key:'phoneNo',   label:'Phone No.'},
+        {key:'channel',   label:'Channel'},
+      ].map(f => `
+        <select class="cp-select" style="font-size:11px;padding:4px 8px;" onchange="setCmFilter('${f.key}',this.value)">
+          <option value="">전체 ${f.label}</option>
+          ${uniq(f.key).map(v=>`<option value="${esc(v)}"${window._cmFilters[f.key]===v?' selected':''}>${esc(v)}</option>`).join('')}
+        </select>
+      `).join('')}
+      <button class="btn btn-ghost btn-sm" onclick="clearCmFilters()">초기화</button>
+      <span style="margin-left:auto;font-size:11px;color:var(--text-3);" id="cm-filter-count"></span>
+    </div>`;
+}
+
+function setCmFilter(key, val) {
+  if(val) window._cmFilters[key] = val;
+  else delete window._cmFilters[key];
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  renderCmTable(mp);
+  renderCmFilters(mp);
+}
+
+function clearCmFilters() {
+  window._cmFilters = {};
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  renderCmTable(mp);
+  renderCmFilters(mp);
+}
+
+
+// ══════════════════════════════════════════════════
+// CLOCK MATRIX — 엑셀 가져오기
+// ══════════════════════════════════════════════════
+
+// 엑셀 헤더 → 내부 필드명 매핑 테이블
+// 대소문자·공백·특수문자 무시하고 매칭
+const CM_COL_MAP = [
+  { field:'creative',     patterns:['creative','소재명','소재'] },
+  { field:'clockNo',      patterns:['clockno','clocknumber','clock number','clock numbers','콜번호','클락번호','clock'] },
+  { field:'duration',     patterns:['duration','초수','sec','duration(sec)'] },
+  { field:'askLevel',     patterns:['asklevel','ask level','ask','금액','후원금액'] },
+  { field:'askStatement', patterns:['askstatement','ask statement','statement','기준기간'] },
+  { field:'phoneNo',      patterns:['phonenumber','phone number','phone','전화번호','tel','telno','tel-no','tel no'] },
+  { field:'phoneDist',    patterns:['phonenumberdistributor','phone number distributor','phonedist','phone distributor','배포처','distributor'] },
+  { field:'cta',          patterns:['cta','콜투액션','call to action','cta_'] },
+  { field:'voArtist',     patterns:['voartist','vo artist','vo','보이스','voice','artist'] },
+  { field:'musicTitle',   patterns:['musictitle','music title','music','음악','곡명'] },
+  { field:'searchKw',     patterns:['searchkeyword','search keyword','searchkw','검색어','keyword(caption','search keyword(caption'] },
+  { field:'smsKw',        patterns:['smskeyword','sms keyword','smskw','sms'] },
+  { field:'url',          patterns:['url','링크','link'] },
+  { field:'sdHd',         patterns:['sdhd','sd or hd','sd/hd','화질'] },
+  { field:'airDate',      patterns:['airdate','air date','온에어','onair','방송시작'] },
+  { field:'offAirDate',   patterns:['offairdate','off airdate','off air date','오프에어','offair','방송종료'] },
+  { field:'dowCm',        patterns:['daysofweek','days of week','dow','요일','day of week'] },
+  { field:'timeband',     patterns:['timeband','time band','시간대','시간'] },
+  { field:'salesHours',   patterns:['saleshours','sales hours','판매시간','영업시간','days of the week','saleshr'] },
+  { field:'channel',      patterns:['channel','station','channel/station','채널','채널명'] },
+  { field:'utm',          patterns:['utm','utmcode','utm code'] },
+  { field:'notes',        patterns:['notes','note','메모','비고','remarks'] },
+  { field:'category',     patterns:['구분','category','분류','type'] },
+];
+
+function normKey(str) {
+  return String(str||'').toLowerCase().replace(/[\s\-_\/\(\)\.]+/g,'');
+}
+
+function matchCmField(headerStr) {
+  const norm = normKey(headerStr);
+  for(const map of CM_COL_MAP) {
+    if(map.patterns.some(p => norm===normKey(p) || norm.includes(normKey(p)))) {
+      return map.field;
+    }
+  }
+  return null;
+}
+
+function importCmFromExcel(input) {
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      if(raw.length < 2) { toast('데이터가 없습니다.'); return; }
+
+      // 헤더 행 찾기 — 첫 10행 중 가장 많은 필드가 매칭되는 행
+      let headerRowIdx = 0;
+      let maxMatch = 0;
+      for(let i=0; i<Math.min(10, raw.length); i++) {
+        const matched = raw[i].filter(h => matchCmField(h)).length;
+        if(matched > maxMatch) { maxMatch = matched; headerRowIdx = i; }
+      }
+
+      const headers = raw[headerRowIdx];
+      // 헤더 → 필드 매핑
+      const colMap = headers.map(h => matchCmField(h));
+
+      // 데이터 행 파싱
+      const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+      if(!mp.clockMatrix) mp.clockMatrix = {rows:[]};
+
+      // 기존 Clock No. 목록
+      const existingClockNos = new Set(mp.clockMatrix.rows.map(r => r.clockNo).filter(Boolean));
+
+      let added = 0, skipped = 0;
+      for(let i=headerRowIdx+1; i<raw.length; i++) {
+        const row = raw[i];
+        // 빈 행 스킵
+        if(row.every(c => c==='' || c===null || c===undefined)) continue;
+
+        const r = {
+          id:uid(), creative:'', clockNo:'', duration:'', askLevel:'', askStatement:'',
+          phoneNo:'', phoneDist:'', cta:'', voArtist:'', musicTitle:'',
+          searchKw:'', smsKw:'', url:'', sdHd:'', airDate:'', offAirDate:'',
+          dowCm:'', timeband:'', salesHours:'', channel:'', utm:'', notes:'', category:''
+        };
+        row.forEach((val, ci) => {
+          const field = colMap[ci];
+          if(!field) return;
+          if((field==='airDate'||field==='offAirDate') && val instanceof Date) {
+            r[field] = val.toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','');
+          } else {
+            r[field] = String(val===null||val===undefined?'':val).trim();
+          }
+        });
+
+        // Clock No. 중복이면 스킵
+        if(r.clockNo && existingClockNos.has(r.clockNo)) {
+          skipped++;
+          continue;
+        }
+        if(r.clockNo) existingClockNos.add(r.clockNo);
+        mp.clockMatrix.rows.push(r);
+        added++;
+      }
+
+      renderCmTable(mp);
+      input.value = '';
+      const skipMsg = skipped > 0 ? ` (중복 ${skipped}개 스킵)` : '';
+      toast(`${added}개 행 추가됨${skipMsg}. 저장 버튼을 눌러 확정하세요.`);
+
+    } catch(err) {
+      console.error(err);
+      toast('엑셀 파싱 오류: ' + err.message);
+    }
+  };
+  reader.readAsBinaryString(file);
+}
+
+
 // ── goHome은 위에서 재정의됨
+
+// ══════════════════════════════════════════════════
+// 다운로드 메뉴
+// ══════════════════════════════════════════════════
+function toggleDlMenu() {
+  const dd = document.getElementById('dl-dropdown');
+  if(!dd) return;
+  dd.classList.toggle('open');
+  // 외부 클릭 시 닫기
+  setTimeout(() => {
+    const handler = (e) => {
+      const menu = document.getElementById('dl-menu');
+      if(menu && !menu.contains(e.target)) {
+        dd.classList.remove('open');
+        document.removeEventListener('click', handler);
+      }
+    };
+    document.addEventListener('click', handler);
+  }, 0);
+}
+
+// ══════════════════════════════════════════════════
+// 엑셀 다운로드 (SheetJS)
+// ══════════════════════════════════════════════════
+function getXLSX() {
+  if(typeof XLSX === 'undefined') { toast('SheetJS 라이브러리 로딩 중입니다. 잠시 후 다시 시도해주세요.'); return null; }
+  return XLSX;
+}
+
+function downloadExcel(wb, filename) {
+  const X = getXLSX(); if(!X) return;
+  X.writeFile(wb, filename);
+  document.getElementById('dl-dropdown')?.classList.remove('open');
+}
+
+// Clock Matrix 다운로드
+function exportClockMatrix() {
+  const X = getXLSX(); if(!X) return;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const rows = mp.clockMatrix?.rows || [];
+  const headers = ['Creative','Clock No.','Code','Phone Number','CTA','Channel/Station','Duration','Ask Level','Phone Distributor','VO Artist','Music Title','Search Keyword','SMS Keyword','URL','SD/HD','Air Date','Off Air Date','Days of Week','Timeband','Sales Hours','UTM','Notes','Category'];
+  const data = [headers, ...rows.map(r => [
+    r.creative||'', r.clockNo||'', `${r.creative||''}${r.cta?'+'+r.cta:''}`,
+    r.phoneNo||'', r.cta||'', r.channel||'', r.duration||'', r.askLevel||'',
+    r.phoneDist||'', r.voArtist||'', r.musicTitle||'', r.searchKw||'',
+    r.smsKw||'', r.url||'', r.sdHd||'', r.airDate||'', r.offAirDate||'',
+    r.dowCm||'', r.timeband||'', r.salesHours||'', r.utm||'', r.notes||'', r.category||''
+  ])];
+  const ws = X.utils.aoa_to_sheet(data);
+  const wb = X.utils.book_new();
+  X.utils.book_append_sheet(wb, ws, 'Clock Matrix');
+  downloadExcel(wb, `ClockMatrix_${mp.client||'MP'}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Clock Matrix 다운로드 완료');
+}
+
+// Creative Plan 다운로드 — 템플릿 서식 적용
+const CP_TEMPLATE_B64 = "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";
+
+function exportCreativePlan() {
+  const X = getXLSX(); if(!X) return;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const rows = mp.creativePlan?.rows || [];
+  const cmRows = mp.clockMatrix?.rows || [];
+
+  // 기준 월
+  const year  = parseInt(document.getElementById('cp-year')?.value)  || new Date().getFullYear();
+  const month = parseInt(document.getElementById('cp-month')?.value) || new Date().getMonth()+1;
+  const weeks = typeof getWeeksOfMonth === 'function' ? getWeeksOfMonth(year, month) : [];
+
+  // 템플릿 로드
+  const binaryStr = atob(CP_TEMPLATE_B64);
+  const bytes = new Uint8Array(binaryStr.length);
+  for(let i=0; i<binaryStr.length; i++) bytes[i] = binaryStr.charCodeAt(i);
+  const wb = X.read(bytes, {type:'array'});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+
+  // Week 기간 행6에 날짜 범위 기입
+  const weekStartCols = [11, 14, 17, 20, 23]; // K,N,Q,T,W (1-indexed)
+  weeks.forEach((w, i) => {
+    if(i >= 5) return;
+    const addr = X.utils.encode_cell({r:5, c:weekStartCols[i]-1}); // row6 = r:5
+    if(!ws[addr]) ws[addr] = {};
+    ws[addr].v = `${w.start.getMonth()+1}/${w.start.getDate()}~${w.end.getMonth()+1}/${w.end.getDate()}`;
+    ws[addr].t = 's';
+  });
+
+  // 데이터 행8~부터 (r:7 = 0-indexed)
+  const DAY_KEYS = ['wd','sa','su'];
+  rows.forEach((r, ri) => {
+    const cm = cmRows.find(c => c.channel===r.channel && c.creative===r.creative);
+    const rowIdx = 7 + ri; // r=7 → row8
+
+    // A~J 데이터
+    const rowData = [
+      r.creative||'',           // A: CREATIVE
+      '',                        // B: CATEGORY
+      r.channel||'',             // C: CHANNEL
+      cm?.duration||'',          // D: DURATION
+      cm?.cta||r.cta||'',       // E: CTA
+      cm?.phoneNo||'',           // F: TEL-NO
+      cm?.dowCm||'',             // G: DOW
+      cm?.timeband||'',          // H: TOD
+      cm?.offAirDate||'',        // I: OFF DATE
+      r.code||''                 // J: CODE
+    ];
+    rowData.forEach((val, ci) => {
+      const addr = X.utils.encode_cell({r:rowIdx, c:ci});
+      if(!ws[addr]) ws[addr] = {};
+      ws[addr].v = val; ws[addr].t = 's';
+    });
+
+    // Week 평일/토/일 (K~Y)
+    weeks.forEach((w, wi) => {
+      if(wi >= 5) return;
+      DAY_KEYS.forEach((dk, di) => {
+        const wKey = `w${wi}_${dk}`;
+        const val = r.weeks?.[wKey] || '';
+        const display = val==='live' ? 'Live' : val==='off' ? 'OFF' : '';
+        const addr = X.utils.encode_cell({r:rowIdx, c:weekStartCols[wi]-1+di});
+        if(!ws[addr]) ws[addr] = {};
+        ws[addr].v = display; ws[addr].t = 's';
+      });
+    });
+  });
+
+  // 범위 업데이트
+  const lastRow = 7 + Math.max(rows.length, 1);
+  ws['!ref'] = `A1:${X.utils.encode_cell({r:lastRow, c:24})}`;
+
+  const filename = `CreativePlan_${mp.client||'MP'}_${year}${String(month).padStart(2,'0')}_v${mp.version||'1'}.xlsx`;
+  downloadExcel(wb, filename);
+  toast('Creative Plan 다운로드 완료');
+}
+
+// Call Number 다운로드
+function exportCallNumber() {
+  const X = getXLSX(); if(!X) return;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const callNos = mp.callNumbers || [];
+  const cmRows  = mp.clockMatrix?.rows || [];
+  const headers = ['전화번호','매핑된 소재','채널'];
+  const data = [headers, ...callNos.map(cn => {
+    const mapped = cmRows.filter(r => r.phoneNo === cn.number);
+    return [
+      cn.number||'',
+      [...new Set(mapped.map(r=>r.creative).filter(Boolean))].join(', '),
+      [...new Set(mapped.map(r=>r.channel).filter(Boolean))].join(', ')
+    ];
+  })];
+  const ws = X.utils.aoa_to_sheet(data);
+  const wb = X.utils.book_new();
+  X.utils.book_append_sheet(wb, ws, 'Call Number');
+  downloadExcel(wb, `CallNumber_${mp.client||'MP'}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast('Call Number 다운로드 완료');
+}
+
+// ══════════════════════════════════════════════════
+// 버전 히스토리 (Firebase Storage)
+// ══════════════════════════════════════════════════
+let _verFile = null;
+
+function handleVerFileSelect(input) {
+  _verFile = input.files[0];
+  const nameEl = document.getElementById('ver-file-name');
+  const btn    = document.getElementById('ver-upload-btn');
+  if(_verFile) {
+    nameEl.textContent = `선택된 파일: ${_verFile.name} (${(_verFile.size/1024).toFixed(1)}KB)`;
+    btn.disabled = false;
+  } else {
+    nameEl.textContent = '';
+    btn.disabled = true;
+  }
+}
+
+async function uploadVersion() {
+  if(!_verFile) return;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+
+  // Firebase Storage 함수가 로드될 때까지 최대 3초 대기
+  let waited = 0;
+  while(!window.__uploadFile && waited < 3000) {
+    await new Promise(r => setTimeout(r, 100));
+    waited += 100;
+  }
+  if(!window.__uploadFile) {
+    document.getElementById('ver-upload-status').textContent = '오류: Firebase Storage 연결 실패. 페이지를 새로고침 후 다시 시도해주세요.';
+    document.getElementById('ver-upload-progress').style.display = 'block';
+    return;
+  }
+
+  const label = document.getElementById('ver-label').value.trim() || 'v?';
+  const memo  = document.getElementById('ver-memo').value.trim();
+
+  const progressWrap = document.getElementById('ver-upload-progress');
+  const progressBar  = document.getElementById('ver-progress-bar');
+  const statusEl     = document.getElementById('ver-upload-status');
+  const btn          = document.getElementById('ver-upload-btn');
+
+  progressWrap.style.display = 'block';
+  btn.disabled = true;
+  progressBar.style.width = '30%';
+  statusEl.textContent = '업로드 중...';
+
+  try {
+    const path = `mps/${currentMpId}/versions/${Date.now()}_${_verFile.name}`;
+    const url  = await window.__uploadFile(path, _verFile);
+
+    progressBar.style.width = '100%';
+    statusEl.textContent = '완료!';
+
+    if(!mp.versions) mp.versions = [];
+    const ver = {
+      id: uid(),
+      label,
+      memo,
+      filename: _verFile.name,
+      url,
+      storagePath: path,
+      uploadedAt: new Date().toISOString(),
+      uploadedBy: window.__myName || '사용자'
+    };
+    mp.versions.unshift(ver); // 최신순
+    saveMp(currentMpId);
+
+    // 초기화
+    setTimeout(() => {
+      progressWrap.style.display = 'none';
+      progressBar.style.width = '0%';
+      document.getElementById('ver-label').value = '';
+      document.getElementById('ver-memo').value = '';
+      document.getElementById('ver-file-name').textContent = '';
+      document.getElementById('ver-file-input').value = '';
+      btn.disabled = true;
+      _verFile = null;
+      renderVerList(mp);
+      toast(`${label} 업로드 완료!`);
+    }, 800);
+
+  } catch(err) {
+    progressBar.style.width = '0%';
+    statusEl.textContent = '업로드 실패: ' + err.message;
+    btn.disabled = false;
+    console.error(err);
+  }
+}
+
+function openVersionModal() {
+  document.getElementById('dl-dropdown')?.classList.remove('open');
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  renderVerList(mp);
+  openModal('versionModal');
+}
+
+function renderVerList(mp) {
+  const el = document.getElementById('ver-list'); if(!el) return;
+  const vers = mp.versions || [];
+
+  // 최신 버전 강조 표시
+  const latestWrap = document.getElementById('ver-latest-wrap');
+  if(latestWrap) {
+    if(vers.length > 0) {
+      const latest = vers[0]; // 이미 최신순 정렬
+      latestWrap.style.display = 'block';
+      document.getElementById('ver-latest-badge').textContent = latest.label||'v?';
+      document.getElementById('ver-latest-filename').textContent = latest.filename||'';
+      document.getElementById('ver-latest-info').textContent =
+        `${latest.memo||''} · ${latest.uploadedBy||''} · ${new Date(latest.uploadedAt).toLocaleDateString('ko-KR')}`;
+      const link = document.getElementById('ver-latest-link');
+      link.href = latest.url;
+      link.download = latest.filename;
+    } else {
+      latestWrap.style.display = 'none';
+    }
+  }
+
+  if(!vers.length) {
+    el.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-3);font-size:12px;">업로드된 파일이 없습니다.</div>`;
+    return;
+  }
+
+  el.innerHTML = `<div class="ver-list">${vers.map((v,i) => `
+    <div class="ver-item" style="${i===0?'border-color:#BFDBFE;':''}">
+      <span class="ver-badge" style="${i===0?'background:#DBEAFE;color:#1D4ED8;':''}">${esc(v.label||'v?')}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          ${esc(v.filename||'')}
+          ${i===0?'<span style="font-size:10px;color:#2563EB;margin-left:6px;font-weight:700;">최신</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--text-3);">${esc(v.memo||'')} · ${esc(v.uploadedBy||'')} · ${new Date(v.uploadedAt).toLocaleDateString('ko-KR')}</div>
+      </div>
+      <a href="${esc(v.url)}" target="_blank" download="${esc(v.filename)}" class="btn btn-ghost btn-sm" style="white-space:nowrap;">⬇ 다운로드</a>
+      <button class="btn-icon" onclick="deleteVersion('${v.id}')" title="삭제">✕</button>
+    </div>`).join('')}</div>`;
+}
+
+async function deleteVersion(vid) {
+  if(!confirm('이 버전을 삭제하시겠습니까?')) return;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.versions) return;
+  const ver = mp.versions.find(v=>v.id===vid); if(!ver) return;
+  try {
+    if(ver.storagePath) await window.__deleteFile(ver.storagePath);
+  } catch(e) { console.warn('Storage 삭제 실패:', e); }
+  mp.versions = mp.versions.filter(v=>v.id!==vid);
+  saveMp(currentMpId);
+  renderVerList(mp);
+  toast('삭제되었습니다.');
+}
+
+
+// ══════════════════════════════════════════════════
+// CREATIVE PLAN
+// CpRow = { id, channel, creative, dow, tod, offRemark }
+// Week 컬럼은 Clock Matrix의 airDate/offAirDate 참조해서 자동 표시
+// ══════════════════════════════════════════════════
+
+// ── 주 범위 계산 ──────────────────────────────────
+// Week 1: 1일 ~ 첫 일요일
+// Week 2~4: 월~일
+// Week 5: 마지막 월~말일 (있을 경우)
+function getWeeksOfMonth(year, month) {
+  const weeks = [];
+  const firstDay = new Date(year, month-1, 1);
+  const lastDay  = new Date(year, month, 0); // 말일
+
+  let cur = new Date(firstDay);
+  while(cur <= lastDay) {
+    const weekStart = new Date(cur);
+    // 해당 주 일요일 찾기 (0=일요일)
+    const daysToSun = cur.getDay()===0 ? 0 : 7-cur.getDay();
+    let weekEnd = new Date(cur);
+    weekEnd.setDate(cur.getDate() + daysToSun);
+    if(weekEnd > lastDay) weekEnd = new Date(lastDay);
+
+    weeks.push({ start: new Date(weekStart), end: new Date(weekEnd) });
+
+    // 다음 주 월요일로
+    cur = new Date(weekEnd);
+    cur.setDate(cur.getDate()+1);
+    if(cur > lastDay) break;
+  }
+  return weeks;
+}
+
+function fmtDateShort(d) {
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+function dateInRange(dateStr, weekStart, weekEnd) {
+  if(!dateStr) return false;
+  // 다양한 날짜 포맷 파싱 (2026-06-01, 4-Jun-26, 26/06/01 등)
+  const d = new Date(dateStr);
+  if(isNaN(d.getTime())) return false;
+  return d >= weekStart && d <= weekEnd;
+}
+
+function dateRangeOverlaps(airStr, offStr, weekStart, weekEnd) {
+  if(!airStr) return false;
+  const air = new Date(airStr);
+  if(isNaN(air.getTime())) return false;
+  const off = offStr ? new Date(offStr) : air;
+  const offValid = isNaN(off.getTime()) ? air : off;
+  // 범위 겹침: air <= weekEnd AND off >= weekStart
+  return air <= weekEnd && offValid >= weekStart;
+}
+
+// ── Creative Plan 초기화 ─────────────────────────
+function initCpSelects() {
+  const yearSel = document.getElementById('cp-year'); if(!yearSel) return;
+  if(yearSel.options.length > 0) return; // 이미 초기화됨
+  const now = new Date();
+  for(let y=now.getFullYear()-1; y<=now.getFullYear()+2; y++) {
+    yearSel.add(new Option(y+'년', y));
+  }
+  yearSel.value = now.getFullYear();
+  const monthSel = document.getElementById('cp-month');
+  if(monthSel) monthSel.value = now.getMonth()+1;
+}
+
+// ── Creative Plan 렌더링 ─────────────────────────
+function renderCreativePlan() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  if(!mp.creativePlan) mp.creativePlan = { rows:[] };
+
+  const year  = parseInt(document.getElementById('cp-year')?.value)  || new Date().getFullYear();
+  const month = parseInt(document.getElementById('cp-month')?.value) || new Date().getMonth()+1;
+  const weeks = getWeeksOfMonth(year, month);
+  const cmRows = mp.clockMatrix?.rows || [];
+
+  const thead = document.getElementById('cp-thead');
+  const tbody = document.getElementById('cp-tbody');
+  if(!thead||!tbody) return;
+
+  const weekHeaders = weeks.map((w,i)=>
+    `<th class="week-th" style="min-width:160px;">Week ${i+1}<span class="cp-week-label">${fmtDateShort(w.start)}~${fmtDateShort(w.end)}</span></th>`
+  ).join('');
+
+  const weekHeadersHtml = weeks.map((w,i)=>`
+    <th class="week-th" style="min-width:300px;" colspan="3">
+      Week ${i+1}<span class="cp-week-label">${fmtDateShort(w.start)}~${fmtDateShort(w.end)}</span>
+    </th>`).join('');
+  const weekSubHeaders = weeks.map(()=>`
+    <th style="min-width:100px;background:#EFF6FF;color:#2563EB;font-size:9px;font-weight:700;text-align:center;border-right:1px solid var(--border);">평일</th>
+    <th style="min-width:100px;background:#F0FDF4;color:#16A34A;font-size:9px;font-weight:700;text-align:center;border-right:1px solid var(--border);">토</th>
+    <th style="min-width:100px;background:#FFF7ED;color:#EA580C;font-size:9px;font-weight:700;text-align:center;border-right:1px solid var(--border);">일</th>`).join('');
+
+  thead.innerHTML = `<tr>
+    <th class="sticky" style="min-width:130px;left:0;" rowspan="2">Channel</th>
+    <th class="sticky" style="min-width:140px;left:130px;" rowspan="2">Creative</th>
+    <th class="sticky" style="min-width:180px;left:270px;border-right:2px solid var(--border);" rowspan="2">Code (Creative+CTA)</th>
+    <th style="min-width:70px;" rowspan="2">Duration</th>
+    <th style="min-width:100px;" rowspan="2">CTA</th>
+    <th style="min-width:80px;" rowspan="2">Ask</th>
+    <th style="min-width:120px;" rowspan="2">Tel-No</th>
+    <th style="min-width:100px;" rowspan="2">DOW <span style="font-size:9px;font-weight:400;color:#aaa;">(자동)</span></th>
+    <th style="min-width:80px;" rowspan="2">TOD <span style="font-size:9px;font-weight:400;color:#aaa;">(자동)</span></th>
+    <th style="min-width:120px;" rowspan="2">Off Date <span style="font-size:9px;font-weight:400;color:#aaa;">(자동)</span></th>
+    ${weekHeadersHtml}
+    <th style="width:36px;" rowspan="2"></th>
+  </tr>
+  <tr>${weekSubHeaders}</tr>`;
+
+  const rows = mp.creativePlan.rows;
+  tbody.innerHTML = rows.map((r,i) => {
+    // 채널 목록
+    const channels = [...new Set(cmRows.map(c=>c.channel).filter(Boolean))];
+
+    // 해당 채널의 Creative 목록
+    const channelCreatives = [...new Set(
+      cmRows.filter(c => !r.channel || c.channel===r.channel).map(c=>c.creative).filter(Boolean)
+    )];
+
+    // 해당 채널+Creative의 Code(Creative+CTA) 목록
+    const codeList = [...new Map(
+      cmRows.filter(c => (!r.channel || c.channel===r.channel) && (!r.creative || c.creative===r.creative))
+            .filter(c => c.creative && c.cta)
+            .map(c => {
+              const code = `${c.creative}+${c.cta}`;
+              return [code, { code, cm: c }];
+            })
+    ).values()];
+
+    // 현재 선택된 Code에 매칭되는 Clock Matrix row
+    const cmMatch = r.code
+      ? cmRows.find(c => `${c.creative}+${c.cta}` === r.code && (!r.channel || c.channel===r.channel))
+      : cmRows.find(c => c.channel===r.channel && c.creative===r.creative);
+
+    // 옵션들
+    const channelOpts = ['', ...channels].map(ch =>
+      `<option${ch===r.channel?' selected':''}>${esc(ch)}</option>`
+    ).join('');
+    const creativeOpts = ['', ...channelCreatives].map(cr =>
+      `<option${cr===r.creative?' selected':''}>${esc(cr)}</option>`
+    ).join('');
+    const codeOpts = [`<option value="">-</option>`,
+      ...codeList.map(({code}) =>
+        `<option value="${esc(code)}"${r.code===code?' selected':''}>${esc(code)}</option>`)
+    ].join('');
+
+    // Week 셀
+    const weekCreatives = [...new Map(
+      cmRows.filter(c => !r.channel || c.channel===r.channel)
+            .map(c => [c.creative+'__'+c.cta, {creative:c.creative, cta:c.cta}])
+    ).values()];
+    if(!r.weeks) r.weeks = {};
+
+    // Week 셀 — 평일/토/일 3분할
+    const DAY_TYPES = [
+      {key:'wd', label:'평일'},
+      {key:'sa', label:'토'},
+      {key:'su', label:'일'}
+    ];
+    const weekCells = weeks.map((w,wi) => {
+      return DAY_TYPES.map(dt => {
+        const wKey = `w${wi}_${dt.key}`;
+        const saved = r.weeks?.[wKey] || '';
+
+        // 자동 제안 — airDate~offAirDate 범위 내이면 Live
+        const onAir = cmRows.some(c =>
+          (!r.channel  || c.channel===r.channel) &&
+          (!r.creative || c.creative===r.creative) &&
+          dateRangeOverlaps(c.airDate, c.offAirDate, w.start, w.end)
+        );
+        const autoVal = onAir ? 'live' : '';
+        const curVal  = saved || autoVal;
+
+        const opts = [
+          `<option value="">-</option>`,
+          `<option value="live"${curVal==='live'?' selected':''}>Live</option>`,
+          `<option value="off"${curVal==='off'?' selected':''}>✕ OFF</option>`,
+        ].join('');
+
+        const dayBg    = dt.key==='wd' ? '#EFF6FF' : dt.key==='sa' ? '#F0FDF4' : '#FFF7ED';
+        const dayColor = dt.key==='wd' ? '#2563EB' : dt.key==='sa' ? '#16A34A' : '#EA580C';
+        const cellBg    = curVal==='live' ? dayBg    : curVal==='off' ? '#F5F5F5' : '';
+        const cellColor = curVal==='live' ? dayColor : curVal==='off' ? '#999'    : 'var(--text-3)';
+        const cellFw    = curVal==='live' ? '700'    : '400';
+
+        return `<td style="background:${cellBg};text-align:center;padding:4px 3px;border-right:1px solid var(--border);">
+          <select class="cp-sel" style="color:${cellColor};font-weight:${cellFw};font-size:11px;text-align:center;min-width:60px;" onchange="updateCpWeek('${r.id}','${wKey}',this.value)">${opts}</select>
+        </td>`;
+      }).join('');
+    }).join('');
+
+    // 자동 채움 값 (Code 선택 시 cmMatch 기준)
+    const autoDuration = cmMatch?.duration   || '-';
+    const autoCta      = cmMatch?.cta        || '-';
+    const autoAsk      = cmMatch?.askLevel   || '-';
+    const autoTel      = cmMatch?.phoneNo    || '-';
+    const autoDow      = cmMatch?.dowCm      || '-';
+    const autoTod      = cmMatch?.timeband   || '-';
+    const autoOff      = cmMatch?.offAirDate || '-';
+
+    return `<tr id="cprow-${r.id}">
+      <td class="sticky" style="left:0;">
+        <select class="cp-sel" onchange="updateCpRow('${r.id}','channel',this.value)">${channelOpts}</select>
+      </td>
+      <td class="sticky" style="left:130px;">
+        <select class="cp-sel" onchange="updateCpRow('${r.id}','creative',this.value)">${creativeOpts}</select>
+      </td>
+      <td class="sticky" style="left:270px;border-right:2px solid var(--border);">
+        <select class="cp-sel" style="font-size:11px;" onchange="updateCpCode('${r.id}',this.value)">${codeOpts}</select>
+      </td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoDuration)}</td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoCta)}</td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoAsk)}</td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoTel)}</td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoDow)}</td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoTod)}</td>
+      <td style="color:var(--text);font-size:12px;">${esc(autoOff)}</td>
+      ${weekCells}
+      <td style="text-align:center;"><button class="btn-icon" onclick="removeCpRow('${r.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Creative Plan Row CRUD ────────────────────────
+function addCpRow() {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  if(!mp.creativePlan) mp.creativePlan={rows:[]};
+  mp.creativePlan.rows.push({id:uid(),channel:'',creative:'',dow:'',tod:'',offRemark:''});
+  renderCreativePlan();
+}
+function removeCpRow(rid) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.creativePlan) return;
+  mp.creativePlan.rows = mp.creativePlan.rows.filter(r=>r.id!==rid);
+  renderCreativePlan();
+}
+function updateCpRow(rid, field, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.creativePlan) return;
+  const r = mp.creativePlan.rows.find(x=>x.id===rid); if(!r) return;
+  r[field] = val;
+  if(field==='channel') { r.creative=''; r.code=''; }
+  if(field==='creative') { r.code=''; }
+  renderCreativePlan();
+}
+
+// Code 선택 시 — Creative+CTA 분리 후 자동 채움
+function updateCpCode(rid, code) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.creativePlan) return;
+  const r = mp.creativePlan.rows.find(x=>x.id===rid); if(!r) return;
+  r.code = code;
+  if(code && code !== '') {
+    const cmRows = mp.clockMatrix?.rows || [];
+    const cmMatch = cmRows.find(c =>
+      `${c.creative}+${c.cta}` === code && (!r.channel || c.channel===r.channel)
+    );
+    if(cmMatch) {
+      // Creative 자동 세팅
+      r.creative = cmMatch.creative;
+      // DOW, TOD는 Clock Matrix의 dowCm, timeband 참조 (있으면)
+      if(cmMatch.dowCm  && !r.dow)       r.dow       = cmMatch.dowCm;
+      if(cmMatch.timeband && !r.tod)     r.tod       = cmMatch.timeband;
+      if(cmMatch.offAirDate && !r.offRemark) r.offRemark = cmMatch.offAirDate;
+    }
+  }
+  renderCreativePlan();
+}
+function updateCpWeek(rid, wKey, val) {
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp||!mp.creativePlan) return;
+  const r = mp.creativePlan.rows.find(x=>x.id===rid); if(!r) return;
+  if(!r.weeks) r.weeks={};
+  r.weeks[wKey] = val;
+  // Week 셀만 업데이트 (전체 재렌더 방지)
+  renderCreativePlan();
+}
+function saveCpRows() {
+  saveMp(currentMpId);
+  toast('Creative Plan 저장되었습니다.');
+}
+
 
 // 접속자 이름 설정
 function updateMyName(name) {
