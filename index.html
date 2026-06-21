@@ -228,7 +228,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 /* ══ MEDIA PLAN PAGE ══ */
 .mp-page{max-width:100%;padding:28px 48px 100px;}
 .mp-topbar{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
-.mp-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 20px;margin-bottom:12px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.mp-info-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:12px 20px;margin-bottom:12px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;width:100%;box-sizing:border-box;}
 .mp-info-item{display:flex;align-items:center;gap:8px;font-size:12px;}
 .mp-info-label{color:var(--text-3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.04em;}
 
@@ -285,13 +285,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .mp-move-btn.to-pro:hover{background:#EFF6FF;}
 
 /* ══ MP INNER TABS ══ */
-.mp-inner-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:12px;}
+.mp-inner-tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:0;}
 .mp-inner-tab{padding:9px 18px;font-size:13px;font-weight:600;color:var(--text-3);cursor:pointer;border:none;background:transparent;font-family:inherit;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;}
 .mp-inner-tab:hover{color:var(--text);}
 .mp-inner-tab.active{color:var(--blue-600);border-bottom-color:var(--blue-600);}
 
 /* ══ CLOCK MATRIX ══ */
-.cm-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;}
+.cm-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;width:100%;box-sizing:border-box;}
 .cm-header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);}
 .cm-scroll{overflow-x:auto;}
 .cm-table{width:100%;border-collapse:collapse;min-width:3200px;font-size:12px;}
@@ -457,13 +457,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <!-- [탭1] Media Budget Plan -->
-  <div id="mp-panel-budget">
+  <div id="mp-panel-budget" style="padding-top:16px;">
     <div class="mp-summary" id="mp-summary"></div>
     <div id="mp-buckets-wrap"></div>
   </div>
 
   <!-- [탭2] Creative Plan -->
-  <div id="mp-panel-creative" style="display:none;">
+  <div id="mp-panel-creative" style="display:none;padding-top:16px;">
     <!-- 툴바 -->
     <div class="cp-toolbar">
       <div style="display:flex;align-items:center;gap:8px;">
@@ -494,7 +494,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 
   <!-- [탭3] Clock Matrix -->
-  <div id="mp-panel-clock" style="display:none;">
+  <div id="mp-panel-clock" style="display:none;padding-top:16px;">
     <div class="cm-wrap">
       <div class="cm-header">
         <span class="sec-label">Clock Matrix</span>
@@ -552,13 +552,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
   <!-- [탭4] Call Number -->
-  <div id="mp-panel-callno" style="display:none;">
-
-    <!-- 콜번호 목록 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);">
+  <div id="mp-panel-callno" style="display:none;padding-top:16px;">
+    <div class="cm-wrap" style="margin-bottom:12px;">
+      <div class="cm-header">
         <span class="sec-label">콜번호 관리</span>
-        <div style="display:flex;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
           <button class="btn btn-ghost btn-sm" onclick="addCallNo()">+ 콜번호 추가</button>
           <button class="btn btn-ghost btn-sm" onclick="exportCallNumber()">⬇ 엑셀 다운로드</button>
           <button class="btn btn-primary btn-sm" onclick="saveCallNos()">💾 저장</button>
@@ -567,9 +565,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div id="callno-chips" style="padding:10px 16px;display:flex;gap:8px;flex-wrap:wrap;min-height:44px;align-items:center;"></div>
     </div>
 
-    <!-- 소재×번호 매핑 매트릭스 -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;">
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--gray-50);border-bottom:1px solid var(--border);">
+    <div class="cm-wrap">
+      <div class="cm-header">
         <span class="sec-label">소재별 콜번호 매핑 현황</span>
         <span style="font-size:11px;color:var(--text-3);">Clock Matrix 기준 자동 생성</span>
       </div>
@@ -577,7 +574,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <div style="padding:24px;text-align:center;color:var(--text-3);">Clock Matrix에 데이터를 입력하면 자동으로 표시됩니다.</div>
       </div>
     </div>
-
   </div>
 
 </div>
@@ -2118,7 +2114,10 @@ function renderMpBucketHTML(mp, def) {
     const askOpts      = getMpCmOpts(r.channel, 'askLevel');
 
     const mkSel = (field, val, opts, key) => {
-      const allOpts = [...new Set([...(val?[val]:[]), ...opts])];
+      // opts가 없으면 Clock Matrix 전체에서 해당 필드 목록 사용
+      const fallbackOpts = opts.length ? opts :
+        [...new Set(cmRows.map(c=>c[field==='ask'?'askLevel':field]).filter(Boolean))];
+      const allOpts = [...new Set([...(val?[val]:[]), ...fallbackOpts])];
       if(!allOpts.length) return `<input class="ec" value="${esc(val||'')}" placeholder="-" oninput="updateMpRow('${key}','${r.id}','${field}',this.value)">`;
       return `<select class="ec-sel" onchange="updateMpRow('${key}','${r.id}','${field}',this.value)">
         <option value="">-</option>
@@ -2128,12 +2127,12 @@ function renderMpBucketHTML(mp, def) {
 
     return `<tr id="mprow-${r.id}">
       <td style="text-align:center;color:var(--text-3);">${i+1}</td>
-      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="채널명" oninput="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
       <td>${mkSel('creative', r.creative||'', creativeOpts, def.key)}</td>
       <td>${mkSel('duration', r.duration||'', durationOpts, def.key)}</td>
       <td>${mkSel('cta',      r.cta||'',      ctaOpts,      def.key)}</td>
       <td>${mkSel('ask',      r.ask||'',      askOpts,      def.key)}</td>
       <td style="color:var(--text-3);font-size:12px;">${esc(genreVal||'-')}</td>
+      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="채널명" oninput="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
       <td class="r">
         <input class="ec" style="text-align:right;"
           value="${fmtN(r.mediaCost)}"
@@ -2162,6 +2161,7 @@ function renderMpBucketHTML(mp, def) {
       <span class="mp-bucket-kpi">${rows.length}ch · ${fmt(cost)} · ${spot}회 · Spot Cost ${spc?fmt(spc):'-'}</span>
       <div style="display:flex;gap:8px;">
         <button class="btn btn-ghost btn-sm" onclick="addMpRow('${def.key}')">+ 행 추가</button>
+        <button class="btn btn-ghost btn-sm" onclick="exportMediaBudgetPlan('${def.key}')">⬇ 엑셀 다운로드</button>
         <button class="btn btn-primary btn-sm" onclick="saveMpRows()">💾 저장</button>
       </div>
     </div>
@@ -2169,12 +2169,12 @@ function renderMpBucketHTML(mp, def) {
       <table class="mp-table">
         <thead><tr>
           <th style="width:28px;text-align:center;">#</th>
-          <th style="width:120px;">Channel</th>
           <th style="width:110px;">Creative</th>
           <th style="width:65px;">Duration</th>
           <th style="width:85px;">CTA</th>
           <th style="width:70px;">Ask</th>
           <th style="width:90px;">Genre <span style="font-size:9px;font-weight:400;color:#aaa;">(자동)</span></th>
+          <th style="width:120px;">Channel</th>
           <th class="r" style="width:120px;">Media Cost</th>
           <th class="r" style="width:100px;">Spot Cost</th>
           <th class="r" style="width:60px;">Spot</th>
@@ -2902,6 +2902,36 @@ function downloadExcel(wb, filename) {
   const X = getXLSX(); if(!X) return;
   X.writeFile(wb, filename);
   document.getElementById('dl-dropdown')?.classList.remove('open');
+}
+
+// Media Budget Plan 다운로드
+function exportMediaBudgetPlan(bucketKey) {
+  const X = getXLSX(); if(!X) return;
+  const mp = (window.STORE.mps||{})[currentMpId]; if(!mp) return;
+  const rows = mp[bucketKey]?.rows || [];
+  const bucketLabel = bucketKey === 'propose' ? '제안' : '대안';
+  const headers = ['Channel','Creative','Duration','CTA','Ask','Genre','Media Cost','Spot Cost','Spot','Comment'];
+  const data = [headers, ...rows.map(r => {
+    const spc = (r.mediaCost && r.spot > 0) ? Math.round(r.mediaCost / r.spot) : '';
+    return [
+      r.channel||'', r.creative||'', r.duration||'', r.cta||'',
+      r.ask||'', r.genre||'',
+      r.mediaCost||0, spc, r.spot||0, r.comment||''
+    ];
+  })];
+  const ws = X.utils.aoa_to_sheet(data);
+  // 숫자 컬럼 포맷
+  rows.forEach((r, i) => {
+    const rowIdx = i + 1;
+    ['G','H','I'].forEach(col => {
+      const cell = ws[`${col}${rowIdx+1}`];
+      if(cell && typeof cell.v === 'number') cell.t = 'n';
+    });
+  });
+  const wb = X.utils.book_new();
+  X.utils.book_append_sheet(wb, ws, `Media Budget Plan_${bucketLabel}`);
+  downloadExcel(wb, `MediaBudgetPlan_${bucketLabel}_${mp.client||'MP'}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  toast(`${bucketLabel} Media Budget Plan 다운로드 완료`);
 }
 
 // Clock Matrix 다운로드
