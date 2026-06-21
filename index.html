@@ -2131,8 +2131,8 @@ function renderMpBucketHTML(mp, def) {
       <td>${mkSel('duration', r.duration||'', durationOpts, def.key)}</td>
       <td>${mkSel('cta',      r.cta||'',      ctaOpts,      def.key)}</td>
       <td>${mkSel('ask',      r.ask||'',      askOpts,      def.key)}</td>
-      <td style="color:var(--text-3);font-size:12px;">${esc(genreVal||'-')}</td>
-      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="채널명" oninput="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
+      <td id="mpgenre-${r.id}" style="color:var(--text-3);font-size:12px;">${esc(genreVal||'-')}</td>
+      <td><input class="ec" value="${esc(r.channel||'')}" placeholder="채널명" onchange="updateMpRow('${def.key}','${r.id}','channel',this.value)"></td>
       <td class="r">
         <input class="ec" style="text-align:right;"
           value="${fmtN(r.mediaCost)}"
@@ -2238,10 +2238,14 @@ function updateMpRow(bucketKey, rid, field, val) {
       if(!r.cta      && cmMatch.cta)       r.cta      = cmMatch.cta;
       if(!r.ask      && cmMatch.askLevel)  r.ask      = cmMatch.askLevel;
     }
-    // 채널 마스터에서 Genre 자동 매핑
+    // 채널 마스터에서 Genre 자동 매핑 — Genre 셀만 업데이트
     const chInfo = typeof getChannelInfo === 'function' ? getChannelInfo(val) : null;
-    if(chInfo?.genre && !r.genre) r.genre = chInfo.genre;
-    renderMpBuckets(mp);
+    if(chInfo?.genre) {
+      r.genre = chInfo.genre;
+      // Genre 셀 직접 업데이트 (재렌더 없이)
+      const genreEl = document.getElementById(`mpgenre-${rid}`);
+      if(genreEl) genreEl.textContent = chInfo.genre;
+    }
     renderMpSummary(mp);
     return;
   }
