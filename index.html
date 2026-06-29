@@ -969,6 +969,11 @@ try {
       .catch(()=>setSaved('저장 실패'));
   };
 
+  // loadOnce 헬퍼 — Firebase 경로 1회 읽기
+  const loadOnce = (path) => new Promise(resolve => {
+    onValue(ref(db, path), snap => resolve(snap.val()), {onlyOnce: true});
+  });
+
   // ③ 전체 저장 (레거시 — 가이드 초기화 시에만 사용)
   window.__saveDB = (data) => {
     const payload = data.guides || data;
@@ -977,22 +982,23 @@ try {
       .catch(()=>setSaved('저장 실패'));
   };
 
-  // ④ 새로고침 — guides + mps 모두 로드
+  // ④ 새로고침 — guides + mps + settings 병렬 로드
   window.__reloadDB = () => {
     setSaving();
-    onValue(ref(db, DB_ROOT), snap => {
-      const v = snap.val();
-      if(v) window.STORE.guides = v;
-      // mps도 함께 로드 후 정규화
-      onValue(ref(db, 'mps'), snapMp => {
-        window.STORE.mps = snapMp.val() || {};
-        if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
-        window.__firebaseLoaded = true;
-        window.__onLoaded && window.__onLoaded();
-        setSaved('새로고침 완료');
-        window.toast && window.toast('최신 데이터를 불러왔습니다.');
-      }, {onlyOnce:true});
-    }, {onlyOnce:true});
+    Promise.all([
+      loadOnce(DB_ROOT),
+      loadOnce('mps'),
+      loadOnce('settings')
+    ]).then(([guides, mps, settings]) => {
+      if(guides) window.STORE.guides = guides;
+      window.STORE.mps      = mps      || {};
+      window.STORE.settings = settings || { channels: [] };
+      if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
+      window.__firebaseLoaded = true;
+      window.__onLoaded && window.__onLoaded();
+      setSaved('새로고침 완료');
+      window.toast && window.toast('최신 데이터를 불러왔습니다.');
+    }).catch(() => setSaved('새로고침 실패'));
   };
 
   // ⑤ Presence
@@ -1010,30 +1016,30 @@ try {
     renderPresence(snap.val() || {});
   });
 
-  // ⑥ 초기 로드 — guides + mps + settings 순차 로드
-  onValue(ref(db, DB_ROOT), snap => {
-    const v = snap.val();
-    if(v) window.STORE.guides = v;
-
-    onValue(ref(db, 'mps'), snapMp => {
-      window.STORE.mps = snapMp.val() || {};
-
-      onValue(ref(db, 'settings'), snapSet => {
-        const s = snapSet.val();
-        window.STORE.settings = s || { channels: [] };
-        setTimeout(() => {
-          if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
-          window.__firebaseLoaded = true;
-          if(v) {
-            window.__onLoaded && window.__onLoaded();
-          } else {
-            window.__initStore && window.__initStore();
-          }
-          setSaved('Firebase 연결됨');
-        }, 0);
-      }, {onlyOnce: true});
-    }, {onlyOnce: true});
-  }, {onlyOnce: true});
+  // ⑥ 초기 로드 — guides + mps + settings 병렬 로드
+  Promise.all([
+    loadOnce(DB_ROOT),
+    loadOnce('mps'),
+    loadOnce('settings')
+  ]).then(([guides, mps, settings]) => {
+    if(guides) window.STORE.guides = guides;
+    window.STORE.mps      = mps      || {};
+    window.STORE.settings = settings || { channels: [] };
+    // normalizeFirebaseArrays는 일반 <script>에 정의 — setTimeout(0)으로 실행 보장
+    setTimeout(() => {
+      if(window.normalizeFirebaseArrays) window.STORE = window.normalizeFirebaseArrays(window.STORE);
+      window.__firebaseLoaded = true;
+      if(guides) {
+        window.__onLoaded && window.__onLoaded();
+      } else {
+        window.__initStore && window.__initStore();
+      }
+      setSaved('Firebase 연결됨');
+    }, 0);
+  }).catch(e => {
+    console.error('Firebase 로드 오류:', e);
+    setSaved('로드 오류');
+  });
 
 } catch(e) { setSaved('오프라인 모드'); }
 </script>
@@ -1047,7 +1053,7 @@ window.STORE = { guides:{}, mps:{} };
 let currentGuideId = null;
 let saveTimer = null;
 
-window.__initStore = () => { window.STORE={guides:{}}; renderHomeList(); };
+window.__initStore = () => { renderHomeList(); };
 
 // ── helpers ──────────────────────────────────────
 const esc  = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -3666,12 +3672,16 @@ window.__onLoaded = function() {
   let store = window.STORE;
 
   // Firebase 로드 후 배열 정규화 (읽기 전용 — Firebase에 재저장 안 함)
-  store = normalizeFirebaseArrays(store);
+  if(window.normalizeFirebaseArrays) store = window.normalizeFirebaseArrays(store);
   window.STORE = store;
 
   if(store && store.guides) {
     renderHomeList();
+    // 현재 탭이 mp면 미디어플랜 목록도 갱신
+    const mpTab = document.getElementById('tab-mp');
+    if(mpTab && mpTab.classList.contains('active')) renderMpList();
     if(currentGuideId) renderGuide(currentGuideId);
+    if(currentMpId) renderMp(currentMpId);
   } else if(store && (store._buckets || store.existing || store.expand || store.terre)) {
     const migrated = migrateOldData(store);
     window.STORE = { guides: { [migrated.id]: migrated } };
